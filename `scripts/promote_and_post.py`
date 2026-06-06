@@ -1,0 +1,47 @@
+import os
+from datetime import datetime
+from openai import OpenAI
+from x_post_v2 import post_tweet
+
+# 環境変数の読み込み
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+SITE_URL = "https://2026-worldcup-soccer.netlify.app"
+
+client = OpenAI(api_key=OPENAI_API_KEY)
+
+def generate_promotion_tweet():
+    """AIを使用してサイトの宣伝ツイートを生成する"""
+    print("Generating promotion tweet...")
+    prompt = f"""
+    あなたはW杯シミュレーターサイト（{SITE_URL}）のプロモーション担当者です。
+    毎日、サイトの魅力を伝えるためのX（旧Twitter）投稿文を生成してください。
+    
+    投稿文は140文字以内（日本語）で、読者がサイトを訪れたくなるような魅力的な内容にしてください。
+    必ずサイトのURLを含め、ハッシュタグもいくつか含めてください。
+    
+    【投稿内容の例】
+    - W杯シミュレーターであなたの予想を試そう！
+    - 日本代表の決勝トーナメント進出は？今すぐシミュレート！
+    - FIFAランキングや市場価値も考慮！本格W杯シミュレーターで盛り上がろう！
+    
+    上記のような内容を参考に、毎日異なる魅力的な投稿文を生成してください。
+    """
+    
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[{"role": "user", "content": prompt}]
+    )
+    return response.choices[0].message.content
+
+def post_to_x(tweet_text):
+    """X（旧Twitter）に投稿する"""
+    print("Posting to X...")
+    try:
+        post_tweet(tweet_text)
+        print("Successfully posted to X!")
+    except Exception as e:
+        print(f"Failed to post to X: {e}")
+
+if __name__ == "__main__":
+    tweet = generate_promotion_tweet()
+    post_to_x(tweet)
