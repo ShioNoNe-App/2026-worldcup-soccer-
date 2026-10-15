@@ -3,6 +3,8 @@ import { buildContext, checkQuestionFor, nextQuestion } from '../engine/diagnosi
 import { buildInitialReading, composeCompat, composeTopicResult, composeYearReadings, topicIntro } from '../engine/diagnosis/result';
 import type { Answers, QuestionDef } from '../engine/diagnosis/types';
 import { dayPillarOf } from '../engine/bazi/calendar';
+import { computeJyotish } from '../engine/jyotish/jyotish';
+import { composeProfileReport, composeThemeReport } from '../engine/diagnosis/profile';
 import { DAY_MASTERS_EN } from './en/dayMasters';
 import { COMMON_OPTIONS_EN, QUESTIONS_EN } from './en/questions';
 import { TRAITS_EN } from './en/traits';
@@ -67,6 +69,13 @@ describe('英語の結果にかなが混ざらない', () => {
         const ctx = buildContext(chart, answers);
         expect(JSON.stringify(composeTopicResult(topic.id, ctx, 'en')), topic.id).not.toMatch(KANA);
         for (const t of Object.values(ctx.traits)) for (const b of t.basis) expect(basisText(b, 'en')).not.toMatch(KANA);
+      }
+      const full = buildContext(chart, {}, { jyotish: computeJyotish({ date, time: '12:00' }), type16: 'INFJ' });
+      // 軸の定義（日英併記のデータ）は除いて、表示される文章だけを検査
+      const noAxis = (k: string, v: unknown) => (k === 'axis' ? undefined : v);
+      expect(JSON.stringify(composeProfileReport(full, 'en'), noAxis)).not.toMatch(KANA);
+      for (const theme of ['love', 'work', 'relations', 'self', 'life'] as const) {
+        expect(JSON.stringify(composeThemeReport(theme, full, 'en')), theme).not.toMatch(KANA);
       }
     });
   }

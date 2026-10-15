@@ -354,4 +354,147 @@ export const QUESTIONS_EN: Record<string, QuestionText> = {
       self: { label: 'My mind and body' },
     },
   },
+  love_status: {
+    text: 'Which best describes your love life right now?',
+    sub: 'Used to show only the questions that fit your situation.',
+    options: {
+      crush: { label: 'I have a crush', reaction: 'Right in the middle of the butterflies.' },
+      partner: { label: 'I have a partner' },
+      reunion: { label: 'I’m thinking about an ex' },
+      single: { label: 'Single for now' },
+    },
+  },
+  love_value: {
+    text: 'What do you want most from a partner?',
+    options: {
+      safe: { label: 'Feeling safe when they’re around' },
+      spark: { label: 'Excitement and sparks' },
+      respect: { label: 'Someone I can respect' },
+      laugh: { label: 'Someone I can laugh with' },
+    },
+  },
+  love_fight: {
+    text: 'When you fight with a partner, what usually happens?',
+    options: {
+      now: { label: 'I want to talk and make up right away' },
+      cool: { label: 'I keep my distance until I calm down' },
+      wait: { label: 'I want them to apologize first' },
+      avoid: { label: 'I avoid fighting altogether' },
+    },
+  },
+  love_jealous: {
+    text: 'Your partner goes out one-on-one with a friend. Honestly, how do you feel?',
+    options: {
+      fine: { label: 'It doesn’t bother me at all' },
+      bit: { label: 'A little uneasy, but fine' },
+      tell: { label: 'OK if they tell me beforehand' },
+      no: { label: 'Honestly, I don’t like it' },
+    },
+  },
+  work_feedback: {
+    text: 'What kind of feedback motivates you?',
+    options: {
+      numbers: { label: 'Clear evaluation by numbers and results' },
+      heart: { label: 'Recognition of effort and process' },
+      free: { label: 'Just being trusted is enough' },
+      thanks: { label: 'Hearing "thank you"' },
+    },
+  },
+  work_ideal: {
+    text: 'Which is closest to your ideal way of working?',
+    options: {
+      variety: { label: 'A new challenge every day' },
+      rhythm: { label: 'A steady, set rhythm' },
+      people: { label: 'Working with lots of people' },
+      deep: { label: 'Mastering one thing deeply' },
+    },
+  },
+  rel_open: {
+    text: 'How long does it take you to open up to someone new?',
+    options: {
+      fast: { label: 'I open up right away' },
+      mid: { label: 'After meeting a few times' },
+      slow: { label: 'It takes quite a while' },
+    },
+  },
+  rel_help: {
+    text: 'When you’re in trouble, can you rely on others?',
+    options: {
+      easy: { label: 'I can ask for help fairly easily' },
+      giver: { label: 'I’m relied on more than I rely on others' },
+      hard: { label: 'I’m bad at asking and carry it alone' },
+    },
+  },
+  self_stress: {
+    text: 'When stress builds up, what happens?',
+    options: {
+      talk: { label: 'I want to talk to someone' },
+      hide: { label: 'I want to hide away alone' },
+      move: { label: 'I work it off physically' },
+      rest: { label: 'I just sleep and eat' },
+    },
+  },
+  self_value: {
+    text: 'Which value matters most to you in life?',
+    options: {
+      freedom: { label: 'Freedom' },
+      stability: { label: 'Stability' },
+      growth: { label: 'Growth' },
+      bond: { label: 'Connection' },
+    },
+  },
+  self_seen: {
+    text: 'What do people often say about you?',
+    options: {
+      bright: { label: '"You’re so cheerful"' },
+      calm: { label: '"You’re so calm"' },
+      solid: { label: '"You’re so reliable"' },
+      unique: { label: '"You’re one of a kind"' },
+    },
+  },
+  life_chance: {
+    text: 'If an unexpected opportunity came along, you would…',
+    options: {
+      jump: { label: 'Jump right in' },
+      prepare: { label: 'Prepare, then go for it' },
+      consult: { label: 'Talk to someone I trust' },
+      pass: { label: 'Maybe let it pass for now' },
+    },
+  },
+  life_change: {
+    text: 'What would you most like to change in your life now?',
+    options: {
+      work: { label: 'Work or studies' },
+      people: { label: 'Relationships' },
+      place: { label: 'Where I live / my environment' },
+      self: { label: 'Daily rhythm, mind and body' },
+      none: { label: 'Nothing in particular' },
+    },
+  },
+  rel_party: {
+    text: 'It’s a friend’s birthday. What do you tend to do?',
+    options: {
+      plan: { label: 'Plan a surprise and hype it up' },
+      message: { label: 'Send a heartfelt message' },
+      gift: { label: 'Spend time choosing a gift' },
+      light: { label: 'Just send a quick happy birthday' },
+    },
+  },
+  rel_no: {
+    text: 'Can you turn down a request you don’t want to do?',
+    options: {
+      yes: { label: 'I can say no clearly' },
+      reason: { label: 'I say no after thinking of a reason' },
+      hard: { label: 'I find it really hard to refuse' },
+    },
+  },
+  life_future: {
+    text: 'Can you picture yourself five years from now?',
+    options: {
+      clear: { label: 'I have a clear picture' },
+      vague: { label: 'Sort of' },
+      none: { label: 'Nothing comes to mind' },
+      skip: { label: 'I’d rather not think about it now' },
+    },
+  },
 };

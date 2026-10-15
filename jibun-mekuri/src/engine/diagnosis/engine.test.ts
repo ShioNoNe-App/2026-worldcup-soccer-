@@ -52,13 +52,14 @@ describe('適応的な質問の選択', () => {
     expect(nextQuestion('crush', date)!.id).toBe('crush_after_date');
   });
 
-  it('同じ質問をくり返さず、最大質問数で終わる', () => {
+  it('同じ質問をくり返さず、トピックの質問を最後まで聞き切って終わる', () => {
     for (const topic of TOPICS) {
-      const { asked } = runTopic(topic.id, (q) => q.options[0]);
+      const { asked, ctx } = runTopic(topic.id, (q) => q.options[0]);
       const ids = asked.map((q) => q.id);
       expect(new Set(ids).size, topic.id).toBe(ids.length);
-      expect(ids.length, topic.id).toBeLessThanOrEqual(topic.maxQuestions);
       expect(ids.length, topic.id).toBeGreaterThan(0);
+      expect(ids.length, topic.id).toBeLessThan(12);
+      expect(nextQuestion(topic.id, ctx), topic.id).toBeNull();
     }
   });
 
@@ -98,7 +99,7 @@ describe('適応的な質問の選択', () => {
   it('全ての質問IDが一意で、トピックが存在する', () => {
     const ids = QUESTIONS.map((q) => q.id);
     expect(new Set(ids).size).toBe(ids.length);
-    for (const q of QUESTIONS) for (const t of q.topics) expect(TOPIC_BY_ID[t], `${q.id}→${t}`).toBeDefined();
+    for (const q of QUESTIONS) for (const t of q.topics) if (!t.startsWith('theme:')) expect(TOPIC_BY_ID[t], `${q.id}→${t}`).toBeDefined();
   });
 });
 

@@ -13,6 +13,7 @@ import {
   YEAR_THEMES,
 } from './chartTexts';
 import { DAY_MASTERS } from './dayMasters';
+import { RASHIS } from './jyotish';
 import {
   BRANCH_RELATION_TEXTS_EN,
   ELEMENTS_EN,
@@ -135,8 +136,21 @@ export function basisText(b: BasisRef, lang: Lang): string {
       const e = elementText(b.element, lang);
       return lang === 'en' ? `Plenty of ${e.name} (${b.count})` : `五行の「${e.name}」が多め（${b.count}つ）`;
     }
+    case 'moonSign': {
+      const r = RASHIS[b.sign];
+      return lang === 'en' ? `Indian astrology: Moon in ${r.name.en}` : `インド占星術：月星座 ${r.name.ja}`;
+    }
+    case 'type16':
+      return lang === 'en' ? `16 types: “${b.letter}” in ${b.code}` : `16タイプ：${b.code} の「${b.letter}」`;
   }
 }
+
+export const SYSTEM_NAMES: Record<'bazi' | 'jyotish' | 'type16' | 'answers', L> = {
+  bazi: { ja: '四柱推命', en: 'Four Pillars' },
+  jyotish: { ja: 'インド占星術', en: 'Indian astrology' },
+  type16: { ja: '16タイプ', en: '16 types' },
+  answers: { ja: 'あなたの回答', en: 'Your answers' },
+};
 
 export const TEN_GOD_NAMES_EN: Record<TenGod, string> = {
   hikenn: 'Peer',

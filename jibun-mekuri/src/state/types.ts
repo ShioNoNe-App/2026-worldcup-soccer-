@@ -15,6 +15,7 @@ export type Screen =
   | 'home'
   | 'theme'
   | 'topic'
+  | 'themeRun'
   | 'map'
   | 'settings'
   | 'about';
@@ -24,6 +25,8 @@ export interface Profile {
   birthDate: string;
   /** HH:MM。不明なら null */
   birthTime: string | null;
+  /** 本人が知っている16タイプ（任意）。例: 'ENTP' */
+  type16?: string | null;
 }
 
 export interface AppState {
@@ -36,6 +39,8 @@ export interface AppState {
   selectedThemes: ThemeId[];
   answers: Answers;
   completedTopics: string[];
+  /** まとめて答え終わったテーマ */
+  themeRunsDone: ThemeId[];
   /** 「もっと深掘り」で追加した質問枠 */
   topicExtra: Record<string, number>;
   activeTheme: ThemeId | null;
@@ -61,6 +66,7 @@ export function initialState(): AppState {
     selectedThemes: [],
     answers: {},
     completedTopics: [],
+    themeRunsDone: [],
     topicExtra: {},
     activeTheme: null,
     activeTopic: null,

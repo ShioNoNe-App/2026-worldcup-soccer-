@@ -39,6 +39,11 @@
   --accent: #b9a2e8;
   --accent-ink: #6544a8;
   --accent-soft: #f0eafc;
+
+  /* チャート（palette validator で確認済み） */
+  --series-me: #6544a8;
+  --series-hyp: #c0507a;
+  --chart-grid: #e6dcee;
 }
 
 [data-style='pop'][data-accent='love'],
@@ -103,6 +108,10 @@
   --accent: #d9785f;
   --accent-ink: #a5492f;
   --accent-soft: #f8e6df;
+
+  --series-me: #a5492f;
+  --series-hyp: #2f6fa3;
+  --chart-grid: #e2ddd0;
 }
 
 [data-style='chic'][data-accent='love'],
@@ -168,6 +177,10 @@
   --accent: #7b5ce0;
   --accent-ink: #5b3cc4;
   --accent-soft: #ece6ff;
+
+  --series-me: #5b3cc4;
+  --series-hyp: #d0452f;
+  --chart-grid: #e4dccb;
 }
 
 [data-style='game'][data-accent='love'],

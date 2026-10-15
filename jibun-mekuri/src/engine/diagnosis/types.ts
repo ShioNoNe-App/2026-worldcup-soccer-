@@ -1,6 +1,7 @@
 // 診断エンジンの型定義。質問・選択肢・分岐条件・結果テンプレートはデータ（content/）で定義する。
 import type { ChartAnalysis, StarGroup } from '../bazi/analysis';
 import type { Element } from '../bazi/constants';
+import type { JyotishChart } from '../jyotish/jyotish';
 
 /** 日英併記のテキスト */
 export interface L {
@@ -53,7 +54,18 @@ export interface TraitDef {
 export type BasisRef =
   | { kind: 'dayMaster'; stem: number }
   | { kind: 'group'; group: StarGroup; count: number }
-  | { kind: 'element'; element: Element; count: number };
+  | { kind: 'element'; element: Element; count: number }
+  | { kind: 'moonSign'; sign: number }
+  | { kind: 'type16'; code: string; letter: string };
+
+/** 仮説の出どころになる占術・診断 */
+export type SystemId = 'bazi' | 'jyotish' | 'type16';
+
+/** 命式以外の入力（任意） */
+export interface ExtraSources {
+  jyotish?: JyotishChart | null;
+  type16?: string | null;
+}
 
 /** 命式から導いた仮説の初期値 */
 export interface Prior {
@@ -141,6 +153,9 @@ export interface DiagnosisContext {
   traits: TraitMap;
   tags: Set<string>;
   answers: Answers;
+  sources: ExtraSources;
+  /** 占術ごとの仮説（-1〜1）。一致・不一致の説明に使う */
+  systems: Record<SystemId, Partial<Record<TraitId, number>>>;
 }
 
 export type PointKind = 'strength' | 'caution' | 'tip' | 'note';
@@ -184,6 +199,8 @@ export interface TopicDef {
   dmExtras?: ('strength0' | 'caution0')[];
   related: string[];
   special?: 'compat' | 'yearly';
+  /** テーマをまとめて答えるとき、このタグのいずれかがある場合だけ含める */
+  gate?: string[];
   /** 結果で注意点を強調する（強みが裏目に出る条件など） */
   emphasis?: 'caution' | 'tip';
 }

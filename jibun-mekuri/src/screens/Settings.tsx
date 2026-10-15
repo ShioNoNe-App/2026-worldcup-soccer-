@@ -4,7 +4,7 @@ import { pick } from '../content/localize';
 import { THEME_BY_ID } from '../content/topics';
 import { useApp, useT } from '../state/AppContext';
 import { Dialog, SectionLabel, TopBar } from '../ui/common';
-import { STYLE_INFO, StyleOptions } from './Onboarding';
+import { STYLE_INFO, StyleOptions, Type16Select } from './Onboarding';
 
 export function Settings() {
   const { state, dispatch, deleteAll, notify } = useApp();
@@ -76,6 +76,16 @@ export function Settings() {
           <button type="button" className="btn btn-secondary" onClick={() => dispatch({ type: 'go', screen: 'profile' })}>
             {T('生年月日・時刻を変更', 'Change birth date / time')}
           </button>
+          <div style={{ marginTop: 16 }}>
+            <Type16Select
+              value={state.profile?.type16 ?? ''}
+              onChange={(v) => {
+                if (!state.profile) return;
+                dispatch({ type: 'setProfile', profile: { ...state.profile, type16: v || null } });
+                notify(T('16タイプを更新しました（回答はそのままです）', '16 type updated (your answers are kept)'), '✓');
+              }}
+            />
+          </div>
         </section>
 
         <section className="card" style={{ marginTop: 16 }} aria-labelledby="set-data">

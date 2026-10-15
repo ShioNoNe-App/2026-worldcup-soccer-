@@ -35,6 +35,7 @@ export function loadState(storage: Storage | null = safeStorage()): LoadResult {
     if (!Array.isArray(merged.selectedThemes)) merged.selectedThemes = [];
     if (!Array.isArray(merged.completedTopics)) merged.completedTopics = [];
     if (!Array.isArray(merged.seenTraits)) merged.seenTraits = [];
+    if (!Array.isArray(merged.themeRunsDone)) merged.themeRunsDone = [];
     if (!isObject(merged.topicExtra)) merged.topicExtra = {};
     if (merged.profile !== null && (!isObject(merged.profile) || typeof merged.profile.birthDate !== 'string')) {
       return { state: { ...fresh, style: merged.style, styleChosen: merged.styleChosen }, corrupted: true, restored: false };

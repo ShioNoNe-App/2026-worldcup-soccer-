@@ -100,6 +100,7 @@ export const TOPICS: TopicDef[] = [
   {
     id: 'crush',
     theme: 'love',
+    gate: ['status:crush'],
     title: { ja: '片思い', en: 'Crush' },
     ask: { ja: '片思い中。どう動けばいい？', en: 'I have a crush. What should I do?' },
     traits: ['love_express', 'love_pace', 'love_reassure'],
@@ -190,6 +191,7 @@ export const TOPICS: TopicDef[] = [
   {
     id: 'partner',
     theme: 'love',
+    gate: ['status:partner'],
     title: { ja: '交際中の相手との関係', en: 'Your current relationship' },
     ask: { ja: '今の恋人との関係、どうしたらいい？', en: 'How can I improve things with my partner?' },
     traits: ['love_reassure', 'love_distance', 'rel_conflict', 'love_express'],
@@ -230,6 +232,7 @@ export const TOPICS: TopicDef[] = [
   {
     id: 'meet',
     theme: 'love',
+    gate: ['status:single'],
     title: { ja: '出会い', en: 'Meeting someone' },
     ask: { ja: 'どんな場所で出会いやすい？', en: 'Where am I likely to meet someone?' },
     traits: ['love_pace', 'self_energy', 'rel_circle'],
@@ -250,6 +253,7 @@ export const TOPICS: TopicDef[] = [
   {
     id: 'reunion',
     theme: 'love',
+    gate: ['status:reunion'],
     title: { ja: '復縁', en: 'Getting back together' },
     ask: { ja: '元の恋人のことが忘れられない', en: 'I can’t forget my ex' },
     traits: ['love_reassure', 'love_distance'],
@@ -274,6 +278,7 @@ export const TOPICS: TopicDef[] = [
   {
     id: 'closer',
     theme: 'love',
+    gate: ['status:crush', 'status:partner'],
     title: { ja: '距離の縮め方', en: 'Getting closer' },
     ask: { ja: '相手との距離を縮めるには？', en: 'How can I get closer to them?' },
     traits: ['love_express', 'love_lead'],
@@ -518,6 +523,9 @@ export const TOPICS: TopicDef[] = [
     maxQuestions: 3,
     intro: { kind: 'dm', field: 'relations' },
     extras: [
+      { any: ['no:hard'], kind: 'tip', text: { ja: '断るのが苦手なら、「今週は難しいけど、来月なら」のように代わりの案とセットで伝えると言いやすくなります。', en: 'If saying no is hard, pair it with an alternative — "not this week, but maybe next month" — and it gets easier.' } },
+      { any: ['gift:care'], kind: 'note', text: { ja: '相手を思って時間をかけられるのは、あなたの大きな魅力です。', en: 'Taking time to think of others is one of your great charms.' } },
+      { any: ['help:hard'], kind: 'tip', text: { ja: '頼るのが苦手なら、まずは「話を聞いてもらうだけ」をお願いしてみて。それも立派な頼り方です。', en: 'If asking for help is hard, start by asking someone just to listen. That counts as relying on someone too.' } },
       { any: ['fr:closer'], kind: 'tip', text: { ja: '仲良くなりたい人には、「この前の話の続き」をきっかけに声をかけると自然です。', en: 'With someone you want to be closer to, picking up a previous conversation is a natural way in.' } },
       { any: ['fr:tired'], kind: 'tip', text: { ja: '気をつかって疲れるときは、会う頻度を少し減らすだけでも楽になります。距離をとるのは悪いことではありません。', en: 'If tiptoeing tires you, simply seeing people a bit less helps. Taking distance isn’t a bad thing.' } },
       { any: ['fr:new'], kind: 'tip', text: { ja: '新しい友達は、「好きなこと」のつながりから生まれやすいもの。趣味の場に足を運んでみて。', en: 'New friends often come from shared interests. Try going to hobby spaces.' } },
@@ -589,6 +597,12 @@ export const TOPICS: TopicDef[] = [
     maxQuestions: 3,
     intro: { kind: 'dm', field: 'essenceSelf' },
     extras: [
+      { any: ['val:freedom'], kind: 'note', text: { ja: '「自由」を大切にするあなたは、選択肢が残されているときにいちばん力が出ます。', en: 'Valuing freedom, you perform best when you still have options.' } },
+      { any: ['val:stability'], kind: 'note', text: { ja: '「安定」を大切にするあなたは、土台が整うほど大胆になれるタイプ。', en: 'Valuing stability, you become bolder the more solid your base is.' } },
+      { any: ['val:growth'], kind: 'note', text: { ja: '「成長」を大切にするあなたは、昨日の自分と比べることで満たされます。', en: 'Valuing growth, you feel fulfilled by comparing yourself with who you were yesterday.' } },
+      { any: ['val:bond'], kind: 'note', text: { ja: '「つながり」を大切にするあなたは、誰かと一緒に喜べることが原動力。', en: 'Valuing connection, sharing joy with others is what drives you.' } },
+      { any: ['st:move'], kind: 'tip', text: { ja: '体を動かして発散できるのは強み。忙しい日こそ10分の散歩を予定に入れて。', en: 'Working off stress physically is a strength. On busy days, schedule even a 10-minute walk.' } },
+      { any: ['st:rest'], kind: 'tip', text: { ja: '寝る・食べるで回復するなら、睡眠時間を「予定」として先に確保しておくのがコツ。', en: 'If sleep and food restore you, block out sleep time in your schedule first.' } },
       { any: ['gapk:sensitive'], kind: 'note', text: { ja: '明るさと繊細さ、どちらも本当のあなた。繊細な部分を見せられる人が1人いると、ぐっと楽になります。', en: 'Both your brightness and sensitivity are the real you. Having one person you can show your sensitive side to makes life much easier.' } },
       { any: ['gapk:soft'], kind: 'tip', text: { ja: 'しっかり者ほど、甘える練習が必要かも。「ちょっと手伝って」から始めてみて。', en: 'Reliable people may need to practice leaning on others. Start with "could you help me a bit?"' } },
       { any: ['gapk:passion'], kind: 'note', text: { ja: '静かな熱さは、ここぞという場面で大きな力になります。熱くなれるものを大切に。', en: 'Quiet passion becomes great power when it counts. Treasure what fires you up.' } },
@@ -658,6 +672,12 @@ export const TOPICS: TopicDef[] = [
       hyp: ['life_mode', 'self_decide'],
     },
     extras: [
+      { any: ['fut:clear'], kind: 'tip', text: { ja: '5年後のイメージがあるなら、そこから逆算して「今年やること」を1つだけ決めてみて。', en: 'If you can picture five years ahead, work backward and pick just one thing to do this year.' } },
+      { any: ['fut:vague', 'fut:none'], kind: 'tip', text: { ja: '未来がぼんやりしていても大丈夫。「心地よかった瞬間」を集めていくと、方向が自然と見えてきます。', en: 'A fuzzy future is fine. Collect moments when you felt good, and a direction will appear naturally.' } },
+      { any: ['chg:work'], kind: 'tip', text: { ja: '仕事・学びを変えたいなら、「仕事・才能・キャリア」のテーマで向いている環境を確かめてから動くと安心です。', en: 'If you want to change work or studies, check which environments suit you in the "Work, Talent & Career" theme first.' } },
+      { any: ['chg:people'], kind: 'tip', text: { ja: '人間関係を変えたいなら、まず「会う頻度」を少し調整するところから。', en: 'If you want to change your relationships, start by adjusting how often you see people.' } },
+      { any: ['chg:place'], kind: 'tip', text: { ja: '環境を変えたいなら、まずは短い旅行やカフェ作業で「新しい場所の自分」を試してみて。', en: 'If you want a new environment, try a short trip or working from a café to test "you in a new place."' } },
+      { any: ['chg:self'], kind: 'tip', text: { ja: '生活リズムを整えたいなら、朝か夜のどちらか1つだけ習慣を決めるのがおすすめ。', en: 'To reset your rhythm, pick just one habit — morning or night — to start with.' } },
       { any: ['life:rest'], kind: 'note', text: { ja: '休みたいと感じているなら、それ自体が大事なサイン。休むことも、前に進むための準備です。', en: 'Wanting rest is an important sign. Resting is preparation for moving forward.' } },
       { any: ['focus:love'], kind: 'tip', text: { ja: '今は恋愛やパートナーとの関係に目を向ける時期。「恋愛・結婚・相性」のテーマもめくってみて。', en: 'Now is a time to focus on love and partnership. Try the "Love, Marriage & Compatibility" theme too.' } },
       { any: ['focus:work'], kind: 'tip', text: { ja: '今は仕事や学びに力を入れたい時期。「仕事・才能・キャリア」のテーマで強みを確認してみて。', en: 'Now is a time to put energy into work and learning. Check your strengths in "Work, Talent & Career."' } },

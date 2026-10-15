@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState, type ReactNode } from 'react';
 import { analyzeBirth, type ChartAnalysis } from '../engine/bazi/analysis';
 import { buildContext } from '../engine/diagnosis/engine';
+import { computeJyotish, type JyotishChart } from '../engine/jyotish/jyotish';
 import type { DiagnosisContext } from '../engine/diagnosis/types';
 import { reducer, type Action } from './reducer';
 import { clearState, loadState, saveState } from './storage';
@@ -18,6 +19,7 @@ interface AppContextValue {
   dispatch: (a: Action) => void;
   chart: ChartAnalysis | null;
   diag: DiagnosisContext | null;
+  jyotish: JyotishChart | null;
   toasts: Toast[];
   notify: (text: string, icon?: string) => void;
   /** 前回の保存データから再開した（このセッションの最初だけ true） */
@@ -65,7 +67,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [state.profile]);
 
-  const diag = useMemo(() => (chart ? buildContext(chart, state.answers) : null), [chart, state.answers]);
+  const jyotish = useMemo(() => {
+    if (!state.profile) return null;
+    try {
+      return computeJyotish({ date: state.profile.birthDate, time: state.profile.birthTime });
+    } catch {
+      return null;
+    }
+  }, [state.profile]);
+
+  const diag = useMemo(
+    () => (chart ? buildContext(chart, state.answers, { jyotish, type16: state.profile?.type16 ?? null }) : null),
+    [chart, jyotish, state.answers, state.profile?.type16],
+  );
 
   const notify = useCallback((text: string, icon?: string) => {
     const id = ++toastId.current;
@@ -84,13 +98,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
       dispatch,
       chart,
       diag,
+      jyotish,
       toasts,
       notify,
       restored: initial.restored,
       loadWarning: initial.corrupted,
       deleteAll,
     }),
-    [state, chart, diag, toasts, notify, initial, deleteAll],
+    [state, chart, diag, jyotish, toasts, notify, initial, deleteAll],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

@@ -18,6 +18,7 @@ import type { Lang } from '../i18n/lang';
 import { useApp, useT } from '../state/AppContext';
 import { Character, ThemeIcon, type Mood } from '../ui/Character';
 import { Burst, RemainingBadge, SectionLabel, TopBar } from '../ui/common';
+import { ThemeRunCta } from './ThemeRun';
 import { DateSelect, emptyDate, partsToIso, type DateParts } from '../ui/DateSelect';
 import { QuestionCard, type ConfirmInfo } from '../ui/QuestionCard';
 import { ShareButton } from '../ui/Share';
@@ -31,13 +32,13 @@ export const STATUS_INFO: Record<TraitStatus, { icon: string; label: { ja: strin
   different: { icon: '◈', label: { ja: '占いと違う一面', en: 'Differs from chart' } },
 };
 
-const SOURCE_LABEL: Record<PointSource, { ja: string; en: string }> = {
+export const SOURCE_LABEL: Record<PointSource, { ja: string; en: string }> = {
   chart: { ja: '占いの解釈', en: 'Chart reading' },
   answer: { ja: 'あなたの回答', en: 'Your answers' },
   both: { ja: '占い×回答', en: 'Chart × answers' },
 };
 
-const KIND_INFO: Record<PointKind, { icon: string; label: { ja: string; en: string } }> = {
+export const KIND_INFO: Record<PointKind, { icon: string; label: { ja: string; en: string } }> = {
   strength: { icon: '★', label: { ja: '強み', en: 'Strength' } },
   caution: { icon: '!', label: { ja: '注意点', en: 'Watch out' } },
   tip: { icon: '➜', label: { ja: '工夫', en: 'Tip' } },
@@ -209,9 +210,11 @@ export function ThemeScreen() {
           </p>
         </div>
 
-        <h2 style={{ marginTop: 28 }}>{T('もっと知りたいことは？', 'What do you want to know more about?')}</h2>
+        <ThemeRunCta theme={theme} />
+
+        <h2 style={{ marginTop: 28 }}>{T('気になるところだけ答える', 'Or answer just what interests you')}</h2>
         <p className="small muted">
-          {T('気になるものだけ選んでね。どれも1〜3問で結果が出ます。', 'Pick only what interests you. Each one gives a result in 1–3 questions.')}
+          {T('項目ごとに、その項目の質問に最後まで答えると結果が出ます。', 'Each item gives a result once you answer its questions.')}
         </p>
         <ul className="topic-list">
           {topicsOfTheme(theme).map((tp) => {
@@ -232,7 +235,9 @@ export function ThemeScreen() {
                   </span>
                   {st === 'done' && <span className="status-badge done">{T('結果あり', 'Done')}</span>}
                   {st === 'progress' && <span className="status-badge">{T('途中', 'In progress')}</span>}
-                  {st === 'new' && <span className="count-chip">{T(`最大${tp.maxQuestions}問`, `≤${tp.maxQuestions} Qs`)}</span>}
+                  {st === 'new' && (
+                    <span className="count-chip">{T(`約${availableQuestions(tp.id, diag)}問`, `~${availableQuestions(tp.id, diag)} Qs`)}</span>
+                  )}
                 </button>
               </li>
             );
@@ -288,9 +293,8 @@ export function TopicScreen() {
   /** 「ひとつ前へ」で戻ったとき、前の答えを選んだ状態にしておく */
   const [restore, setRestore] = useState<{ qid: string; optionId: string } | null>(null);
 
-  const extra = topic ? (state.topicExtra[topic.id] ?? 0) : 0;
   const done = topic ? state.completedTopics.includes(topic.id) : false;
-  const q = topic && diag && !done ? nextQuestion(topic.id, diag, extra) : null;
+  const q = topic && diag && !done ? nextQuestion(topic.id, diag) : null;
 
   const needsCompatForm = topic?.special === 'compat' && !state.compat && !compatSkipped && !done;
   const showResult = Boolean(topic && diag && !needsCompatForm && (done || !q));
@@ -312,7 +316,7 @@ export function TopicScreen() {
   if (!topic || !chart || !diag) return null;
 
   const answered = answeredInTopic(topic.id, state.answers);
-  const remaining = remainingQuestions(topic.id, diag, extra);
+  const remaining = remainingQuestions(topic.id, diag);
   const lastInTopic = Object.entries(state.answers)
     .filter(([, a]) => a.topic === topic.id)
     .sort((a, b) => b[1].at - a[1].at)[0];
@@ -405,13 +409,6 @@ export function TopicScreen() {
                   <RemainingBadge answered={answered} remaining={remaining} />
                 </>
               }
-              footer={
-                <p className="center" style={{ marginTop: 12, marginBottom: 0 }}>
-                  <button type="button" className="btn btn-ghost" onClick={() => dispatch({ type: 'completeTopic', topic: topic.id })}>
-                    {answered > 0 ? T('ここまでの結果を見る', 'See results so far') : T('質問に答えずに結果を見る', 'See results without answering')}
-                  </button>
-                </p>
-              }
             >
               {fb?.burst && <Burst key={fb.key} x={fb.burst.x} y={fb.burst.y} />}
             </QuestionCard>
@@ -431,7 +428,6 @@ function TopicResultView({ topicId, onUndoLast }: { topicId: string; onUndoLast?
   if (!diag) return null;
   const topic = TOPIC_BY_ID[topicId];
   const r = composeTopicResult(topicId, diag, lang);
-  const more = availableQuestions(topicId, diag) > 0;
   const related = topic.related.map((id) => TOPIC_BY_ID[id]).filter(Boolean);
   const theme = THEME_BY_ID[topic.theme];
 
@@ -467,11 +463,6 @@ function TopicResultView({ topicId, onUndoLast }: { topicId: string; onUndoLast?
           keywords={r.keywords}
           theme={topic.theme}
         />
-        {more && (
-          <button type="button" className="btn btn-secondary" onClick={() => dispatch({ type: 'moreQuestions', topic: topicId, count: 2 })}>
-            {T('もう少し深掘りする（+2問）', 'Dig deeper (+2 Qs)')}
-          </button>
-        )}
       </div>
 
       <div className="card">
@@ -520,7 +511,7 @@ function TopicResultView({ topicId, onUndoLast }: { topicId: string; onUndoLast?
 
 // ============ 年運 ============
 
-function YearlyCards() {
+export function YearlyCards() {
   const { state, chart } = useApp();
   const T = useT();
   if (!chart) return null;

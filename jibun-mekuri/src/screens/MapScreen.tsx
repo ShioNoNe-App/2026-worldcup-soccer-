@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { keywordOf } from '../engine/diagnosis/engine';
 import type { ThemeId, TraitId, TraitState } from '../engine/diagnosis/types';
-import { basisText, dmText, pick, traitText } from '../content/localize';
+import { basisText, dmText, elementText, pick, traitText } from '../content/localize';
+import { composeProfileReport } from '../engine/diagnosis/profile';
+import { AxisMeters, NakshatraWheel, RadarChart } from '../ui/charts';
 import { THEMES } from '../content/topics';
 import { traitsOfTheme } from '../content/traits';
 import { useApp, useT } from '../state/AppContext';
@@ -28,7 +30,7 @@ const STATUS_HELP: Record<TraitState['status'], { ja: string; en: string }> = {
 };
 
 export function MapScreen() {
-  const { state, dispatch, chart, diag } = useApp();
+  const { state, dispatch, chart, diag, jyotish } = useApp();
   const T = useT();
   const lang = state.lang;
   const [detail, setDetail] = useState<TraitId | null>(null);
@@ -43,6 +45,10 @@ export function MapScreen() {
     window.scrollTo({ top: 0 });
   };
 
+  const report = composeProfileReport(diag, lang);
+  const elements = chart.elementCounts.map((count, i) => ({ name: elementText(i, lang).name, count }));
+  const pct = Math.round((report.answered / report.total) * 100);
+
   return (
     <>
       <TopBar title={T('じぶんマップ', 'My map')} />
@@ -50,16 +56,131 @@ export function MapScreen() {
         <div className="map-center anim-rise">
           <Character styleId={state.style} mood="happy" size={92} lang={lang} />
           <h1 style={{ margin: '8px 0 0' }}>{dm.nickname}</h1>
-          <p className="small muted">
-            {T(`回答で見えてきたこと ${specified.length} 個 ／ ぜんぶで ${all.length} 個`, `Revealed by your answers: ${specified.length} of ${all.length}`)}
-          </p>
         </div>
 
+        <div className="card level" data-testid="understanding">
+          <SectionLabel>{T('じぶん理解度', 'Self-understanding')}</SectionLabel>
+          <div className="row" style={{ justifyContent: 'space-between' }}>
+            <strong style={{ fontSize: '1.1rem' }}>
+              Lv.{report.level} {report.levelLabel}
+            </strong>
+            <span className="small muted">
+              {T(`回答で見えたこと ${report.answered} / ${report.total}`, `Revealed: ${report.answered} / ${report.total}`)}
+            </span>
+          </div>
+          <span className="level-bar" aria-hidden="true">
+            <span className="level-fill" style={{ width: `${pct}%` }} />
+          </span>
+          {report.nextHint && <span className="small muted">{report.nextHint}</span>}
+        </div>
+
+        <section className="card" style={{ marginTop: 16 }} aria-labelledby="radar-title">
+          <SectionLabel n={1}>
+            <span id="radar-title">{T('性格チャート（8つの軸）', 'Personality chart (8 axes)')}</span>
+          </SectionLabel>
+          <RadarChart scores={report.scores} lang={lang} />
+          <details className="note" style={{ marginTop: 8 }}>
+            <summary>{T('数値で見る', 'View as numbers')}</summary>
+            <AxisMeters scores={report.scores} lang={lang} />
+          </details>
+          <p className="small muted" style={{ margin: '8px 0 0' }}>
+            {T(
+              '破線は四柱推命・インド占星術・16タイプから読んだ「仮説」、塗りはあなたの回答を反映した今の姿です。答えるほど塗りの形が変わります。',
+              'The dashed line is the hypothesis from Four Pillars, Indian astrology and 16 types; the filled shape reflects your answers. The more you answer, the more it changes.',
+            )}
+          </p>
+        </section>
+
+        <section className="card" style={{ marginTop: 16 }}>
+          <SectionLabel n={2}>{T('3つの占術から見たあなた', 'You, through three lenses')}</SectionLabel>
+          {report.core.map((c) => (
+            <div className="report-item" key={c.tag}>
+              <span className="report-tag">{c.tag}</span>
+              <h3 style={{ marginBottom: 4 }}>{c.title}</h3>
+              <p style={{ margin: 0 }}>{c.body}</p>
+            </div>
+          ))}
+          {!state.profile?.type16 && (
+            <p className="small muted" style={{ marginBottom: 0 }}>
+              {T('16タイプ（MBTI®など）を設定から入力すると、3つ目の視点が加わります。', 'Add your 16 type (e.g. MBTI®) in Settings to add a third lens.')}
+            </p>
+          )}
+        </section>
+
+        {(report.consensus.length > 0 || report.gaps.length > 0) && (
+          <section className="card" style={{ marginTop: 16 }} data-testid="consensus">
+            <SectionLabel n={3}>{T('占術が一致したこと・あなたらしいズレ', 'Where the systems agree — and where you differ')}</SectionLabel>
+            {report.consensus.length > 0 && (
+              <ul className="points">
+                {report.consensus.map((c) => (
+                  <li className="point" key={c}>
+                    <span className="point-icon" aria-hidden="true">
+                      ◎
+                    </span>
+                    <p>{c}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {report.gaps.length > 0 && (
+              <ul className="points" style={{ marginTop: 10 }}>
+                {report.gaps.map((g) => (
+                  <li className="point" key={g}>
+                    <span className="point-icon" aria-hidden="true">
+                      ◈
+                    </span>
+                    <p>{g}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        )}
+
+        <section className="card" style={{ marginTop: 16 }} data-testid="manual">
+          <SectionLabel n={4}>{T('じぶん取扱説明書', 'Your user manual')}</SectionLabel>
+          <p className="small muted">
+            {T('質問に答えた軸から、ページが開いていきます。', 'Pages unlock for each axis you’ve answered questions about.')}
+          </p>
+          {report.manual.map((m) => (
+            <div className={`report-item manual-item ${m.unlocked ? '' : 'is-locked'}`} key={m.axis.id}>
+              <h3 style={{ marginBottom: 4 }}>
+                {m.unlocked ? '' : '🔒 '}
+                {pick(m.axis.label, lang)}
+                {m.unlocked && (
+                  <span className="count-chip" style={{ marginLeft: 8, verticalAlign: 'middle' }}>
+                    {m.lean}・{m.score}
+                  </span>
+                )}
+              </h3>
+              <p style={{ margin: 0 }}>{m.unlocked ? m.text : m.hint}</p>
+            </div>
+          ))}
+        </section>
+
+        <section className="card" style={{ marginTop: 16 }}>
+          <SectionLabel n={5}>{T('生まれた日の空', 'The sky on your birthday')}</SectionLabel>
+          {jyotish && <NakshatraWheel j={jyotish} lang={lang} />}
+          <h3 style={{ marginTop: 12 }}>{T('五行のバランス（四柱推命）', 'Five elements (Four Pillars)')}</h3>
+          <div className="bars" role="list">
+            {elements.map((e) => (
+              <div className="bar" role="listitem" key={e.name} aria-label={`${e.name} ${e.count}`}>
+                <span aria-hidden="true">{e.name}</span>
+                <span className="bar-track" aria-hidden="true">
+                  <span className="bar-fill" style={{ display: 'block', width: `${(e.count / 8) * 100}%` }} />
+                </span>
+                <span aria-hidden="true">{e.count}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <h2 style={{ marginTop: 28 }}>{T('発見カード', 'Discovery cards')}</h2>
         <div className="card" style={{ marginBottom: 16 }}>
           <div className="legend" aria-label={T('マップの見かた', 'How to read the map')}>
-            {(Object.keys(STATUS_INFO) as TraitState['status'][]).map((s) => (
-              <span key={s}>
-                <span aria-hidden="true">{STATUS_INFO[s].icon}</span> {pick(STATUS_INFO[s].label, lang)}
+            {(Object.keys(STATUS_INFO) as TraitState['status'][]).map((st) => (
+              <span key={st}>
+                <span aria-hidden="true">{STATUS_INFO[st].icon}</span> {pick(STATUS_INFO[st].label, lang)}
               </span>
             ))}
           </div>

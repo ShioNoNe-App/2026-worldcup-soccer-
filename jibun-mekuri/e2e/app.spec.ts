@@ -72,7 +72,7 @@ test('A: 初回ユーザーが結果とテーマ選択までたどり着ける',
   await expect(page.getByLabel('時柱 戊午')).toBeVisible();
 
   // 1枚ずつめくれる
-  await page.getByRole('button', { name: /めくる（1 \/ 6）/ }).click();
+  await page.getByRole('button', { name: /めくる（1 \/ \d+）/ }).click();
   await expect(page.getByRole('heading', { name: 'どっしり構える山タイプ' })).toBeVisible();
   await page.getByRole('button', { name: 'まとめて全部めくる' }).click();
   await answer(page, 'すごくある！');
@@ -110,7 +110,7 @@ test('B: スタイルを切り替えられ、再読み込み後も保持され�
 
 test('C: 恋愛を選ぶと恋愛の質問が出て、回答で次の質問が変わる', async ({ page }) => {
   await onboard(page, { themes: ['love'] });
-  await expect(page.getByRole('heading', { name: 'もっと知りたいことは？' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '気になるところだけ答える' })).toBeVisible();
   await page.getByRole('button', { name: /片思い中/ }).click();
   await expect(page.getByTestId('question')).toHaveText('好きな人との、今の距離は？');
   await answer(page, 'まだ遠くから見ている');
@@ -121,8 +121,8 @@ test('C: 恋愛を選ぶと恋愛の質問が出て、回答で次の質問が�
   await answer(page, '共通の話題を探してみたい');
   await expect(page.getByTestId('answer-feedback')).toContainText(/見えてきた：|発見カード/);
 
-  // 結果は状況の回答に応じて変わり、別の回答なら別の質問へ分岐する
-  await page.getByRole('button', { name: 'ここまでの結果を見る' }).click();
+  // 最後まで答えると、状況の回答に応じた結果が出る。別の回答なら別の質問へ分岐する
+  await answerUntilResult(page);
   await expect(page.getByTestId('topic-result')).toContainText('あいさつ');
   await page.getByRole('button', { name: '最初から答えなおす' }).click();
   await answer(page, 'よく話す・友達として仲がいい');
@@ -263,24 +263,23 @@ test('①: 答えは「次へ」を押すまで確定せず、選び直し・ひ
   await answer(page, 'まだ遠くから見ている');
   await expect(page.getByTestId('question')).toHaveText('話すきっかけ、どう作れそう？');
   // 結果画面からも最後の回答を直せる
-  await page.getByRole('button', { name: 'ここまでの結果を見る' }).click();
+  await answerUntilResult(page);
   await page.getByTestId('fix-last').click();
-  await expect(page.getByTestId('question')).toHaveText('好きな人との、今の距離は？');
+  await expect(page.getByTestId('question-card')).toBeVisible();
 });
 
 test('②: 残りの質問数がひと目でわかる', async ({ page }) => {
   await onboard(page, { themes: ['work'] });
   await page.getByRole('button', { name: /私の強みって/ }).click();
   const badge = page.getByTestId('remaining');
-  await expect(badge).toContainText('あと3問で結果だよ');
-  await expect(badge).toContainText('1問目 / 最大3問');
+  await expect(badge).toContainText(/あと\d+問で結果だよ/);
+  await expect(badge).toContainText('1問目');
+  const first = await badge.innerText();
   await page.locator('.options .option').first().click();
   await page.getByTestId('confirm-answer').click();
-  await expect(badge).toContainText('あと2問');
-  await page.locator('.options .option').first().click();
-  await page.getByTestId('confirm-answer').click();
-  await expect(badge).toContainText('ラスト1問！');
-  await expect(page.getByTestId('confirm-answer')).toHaveText(/答えを選んでね|答えて結果を見る/);
+  await expect(badge).toContainText('2問目');
+  expect(await badge.innerText()).not.toBe(first);
+  await answerUntilResult(page);
 });
 
 test('③: 選んだテーマをホームから編集できる', async ({ page }) => {
@@ -344,4 +343,63 @@ test('⑤: タブメニューは画面上部にあり、画面下部（右下）
   );
   expect(fixedAtBottom).toBe(0);
   expect(vh).toBeGreaterThan(0);
+});
+
+test('テーマにまとめて答えると、状況に合う質問だけが続き、最後にテーマレポートが出る', async ({ page }) => {
+  await onboard(page, { themes: ['love'] });
+  await page.getByTestId('theme-run-start').click();
+  await expect(page.getByTestId('question')).toHaveText('今の恋愛の状況に、いちばん近いのは？');
+  await answer(page, '今はフリー');
+  const seen: string[] = [];
+  for (let i = 0; i < 40; i++) {
+    if (await page.getByTestId('theme-report').isVisible()) break;
+    const q = page.getByTestId('question');
+    await expect(q).toBeVisible();
+    seen.push(await q.innerText());
+    // 途中で結果に飛ぶリンクや「もっと答える？」の確認はない
+    await expect(page.getByRole('button', { name: /ここまでの結果|深掘り/ })).toHaveCount(0);
+    await page.locator('.options .option').first().click();
+    await page.getByTestId('confirm-answer').click();
+  }
+  await expect(page.getByTestId('theme-report')).toBeVisible();
+  expect(seen.length).toBeGreaterThanOrEqual(8);
+  expect(seen.join('\n')).not.toMatch(/好きな人との、今の距離|別れてから|今の恋人との関係/);
+  await expect(page.getByTestId('theme-report')).toContainText('3つの占術から見たあなた');
+  // テーマ画面に戻ると「レポートを見る」に変わっている
+  await page.getByRole('button', { name: 'もどる' }).click();
+  await expect(page.getByTestId('theme-run-cta')).toContainText('レポートができています');
+});
+
+test('16タイプを入力すると、じぶんマップのチャートと3つの視点に反映される', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: '占いをはじめる' }).click();
+  await page.getByTestId('style-skip').click();
+  await page.selectOption('#birth-y', '1995');
+  await page.selectOption('#birth-m', '8');
+  await page.selectOption('#birth-d', '17');
+  await page.selectOption('#type16', 'ENTP');
+  await page.getByTestId('profile-submit').click();
+  await page.getByTestId('reading-all').click();
+  await expect(page.getByText('インド占星術（ジョーティシュ）')).toBeVisible();
+  await expect(page.getByText(/ENTP：アイデア発明家/)).toBeVisible();
+  await page.getByTestId('to-themes').click();
+  await page.getByTestId('theme-self').click();
+  await page.getByTestId('themes-confirm').click();
+  await page.getByRole('navigation', { name: 'メインメニュー' }).getByRole('button', { name: 'じぶんマップ' }).click();
+  await expect(page.getByRole('figure', { name: '性格8軸のレーダーチャート' })).toBeVisible();
+  await expect(page.locator('.report-tag')).toHaveCount(3);
+  await expect(page.getByTestId('manual')).toContainText('🔒');
+  const lockedBefore = await page.locator('.manual-item.is-locked').count();
+  // テーマに答えると取扱説明書が開いていく
+  await page.getByRole('button', { name: 'めくる', exact: true }).click();
+  await page.getByRole('button', { name: /自分の性格・本当の自分/ }).click();
+  await page.getByTestId('theme-run-start').click();
+  for (let i = 0; i < 30; i++) {
+    if (await page.getByTestId('theme-report').isVisible()) break;
+    await page.locator('.options .option').first().click();
+    await page.getByTestId('confirm-answer').click();
+  }
+  await page.getByRole('navigation', { name: 'メインメニュー' }).getByRole('button', { name: 'じぶんマップ' }).click();
+  expect(await page.locator('.manual-item.is-locked').count()).toBeLessThan(lockedBefore);
+  await expect(page.getByTestId('understanding')).toContainText('Lv.');
 });

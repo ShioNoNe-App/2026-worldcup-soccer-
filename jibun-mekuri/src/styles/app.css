@@ -1589,3 +1589,215 @@ li {
   font-size: 0.8rem;
   padding: 3px 10px;
 }
+
+/* ================= チャート ================= */
+
+.chart {
+  margin: 0;
+}
+
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  justify-content: center;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.chart-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.radar-svg,
+.wheel-svg {
+  display: block;
+  width: 100%;
+  max-width: 340px;
+  margin: 4px auto 0;
+  overflow: visible;
+}
+
+.radar-label {
+  font-size: 12px;
+  font-weight: 700;
+  fill: var(--text-muted);
+}
+
+.radar-label.is-active {
+  fill: var(--text);
+}
+
+.radar-me {
+  transform-origin: 160px 160px;
+  animation: radarIn 0.6s ease-out both;
+}
+
+@keyframes radarIn {
+  from {
+    transform: scale(0.2);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+.chart-tip {
+  min-height: 1.8em;
+  text-align: center;
+  font-size: 0.86rem;
+  margin-top: 4px;
+}
+
+.wheel-label {
+  font-size: 11px;
+  font-weight: 700;
+  fill: var(--text-muted);
+}
+
+.wheel-label.is-active {
+  fill: var(--series-me);
+}
+
+.wheel-center {
+  font-size: 13px;
+  font-weight: 800;
+  fill: var(--text);
+}
+
+.wheel-sub {
+  font-size: 12px;
+  fill: var(--text-muted);
+}
+
+.meters {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+  display: grid;
+  gap: 12px;
+}
+
+.meter-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+
+.meter-val {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.meter-track {
+  position: relative;
+  height: 10px;
+  margin: 6px 0 2px;
+  border-radius: 999px;
+  background: var(--surface-2);
+}
+
+.meter-mid {
+  position: absolute;
+  left: 50%;
+  top: -2px;
+  bottom: -2px;
+  width: 1px;
+  background: var(--chart-grid);
+}
+
+.meter-hyp,
+.meter-me {
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border-radius: 50%;
+}
+
+.meter-hyp {
+  background: var(--surface);
+  border: 2px dashed var(--series-hyp);
+}
+
+.meter-me {
+  background: var(--series-me);
+  border: 2px solid var(--surface);
+  transition: left 0.5s ease;
+}
+
+.meter-poles {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* ================= レポート ================= */
+
+.level {
+  display: grid;
+  gap: 6px;
+}
+
+.level-bar {
+  height: 12px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.level-fill {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.5s ease;
+}
+
+.report-item {
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+
+.report-item:first-of-type {
+  border-top: none;
+}
+
+.report-tag {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 1px 8px;
+  border-radius: var(--radius-chip);
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  margin-bottom: 4px;
+}
+
+.manual-item.is-locked {
+  opacity: 0.7;
+}
+
+.manual-item.is-locked p {
+  color: var(--text-muted);
+}
+
+.run-cta {
+  display: grid;
+  gap: 10px;
+}
+
+@media (max-width: 359px) {
+  .nav-btn svg {
+    display: none;
+  }
+  .nav-btn {
+    white-space: nowrap;
+    font-size: 0.72rem;
+  }
+}

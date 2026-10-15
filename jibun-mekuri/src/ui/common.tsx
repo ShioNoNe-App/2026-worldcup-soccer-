@@ -3,7 +3,7 @@ import { useApp, useT } from '../state/AppContext';
 import type { Screen } from '../state/types';
 import { voiceOf } from './voice';
 
-const WITH_TABS: Screen[] = ['home', 'theme', 'topic', 'map', 'settings', 'about', 'themes'];
+const WITH_TABS: Screen[] = ['home', 'theme', 'topic', 'themeRun', 'map', 'settings', 'about', 'themes'];
 
 /** 言語切り替え（画面右上に常に表示） */
 export function LangToggle() {
@@ -66,7 +66,7 @@ function TabNav() {
   const { state, dispatch } = useApp();
   const T = useT();
   const current =
-    state.screen === 'theme' || state.screen === 'topic' || state.screen === 'themes'
+    state.screen === 'theme' || state.screen === 'topic' || state.screen === 'themeRun' || state.screen === 'themes'
       ? 'home'
       : state.screen === 'about'
         ? 'settings'
@@ -215,7 +215,7 @@ export function RemainingBadge({ answered, remaining }: { answered: number; rema
         {voice.remaining(remaining)}
       </span>
       <span className="remain-step">
-        {T(`${answered + 1}問目 / 最大${total}問`, `Q${answered + 1} of up to ${total}`)}
+        {T(`${answered + 1}問目 / 全${total}問（目安）`, `Q${answered + 1} of ~${total}`)}
       </span>
       <span className="remain-track" aria-hidden="true">
         <span className="remain-fill" style={{ width: `${pct}%` }} />

@@ -1,6 +1,7 @@
 import type { Pillar } from '../engine/bazi/constants';
 import type { ThemeId, TraitId } from '../engine/diagnosis/types';
 import type { Lang } from '../i18n/lang';
+import { TOPIC_BY_ID } from '../content/topics';
 import { initialState, type AppState, type Profile, type Screen, type StyleId } from './types';
 
 export type Action =
@@ -15,6 +16,8 @@ export type Action =
   | { type: 'undoAnswer'; questionId: string }
   | { type: 'setThemes'; themes: ThemeId[] }
   | { type: 'setLang'; lang: Lang }
+  | { type: 'finishThemeRun'; theme: ThemeId; topics: string[] }
+  | { type: 'restartThemeRun'; theme: ThemeId; topics: string[] }
   | { type: 'completeTopic'; topic: string }
   | { type: 'moreQuestions'; topic: string; count: number }
   | { type: 'restartTopic'; topic: string }
@@ -25,6 +28,12 @@ export type Action =
   | { type: 'visited'; at: number }
   | { type: 'reset'; keepStyle?: boolean };
 
+/** 回答を記録したトピックのテーマ（'theme:love' のようなテーマ入口の質問も含む） */
+function themeOfTopic(topic: string): ThemeId | null {
+  if (topic.startsWith('theme:')) return topic.slice(6) as ThemeId;
+  return TOPIC_BY_ID[topic]?.theme ?? null;
+}
+
 /** 診断の進行状況（プロフィール変更時にリセットする部分） */
 function clearedProgress(state: AppState): AppState {
   return {
@@ -32,6 +41,7 @@ function clearedProgress(state: AppState): AppState {
     readingStep: 0,
     answers: {},
     completedTopics: [],
+    themeRunsDone: [],
     topicExtra: {},
     activeTheme: null,
     activeTopic: null,
@@ -84,6 +94,7 @@ export function reducer(state: AppState, action: Action): AppState {
       return {
         ...state,
         answers,
+        themeRunsDone: state.themeRunsDone.filter((t) => t !== themeOfTopic(removed.topic)),
         completedTopics: state.completedTopics.filter((t) => t !== removed.topic),
       };
     }
@@ -91,6 +102,21 @@ export function reducer(state: AppState, action: Action): AppState {
       return { ...state, selectedThemes: action.themes };
     case 'setLang':
       return { ...state, lang: action.lang };
+    case 'finishThemeRun':
+      return {
+        ...state,
+        themeRunsDone: state.themeRunsDone.includes(action.theme) ? state.themeRunsDone : [...state.themeRunsDone, action.theme],
+        completedTopics: [...new Set([...state.completedTopics, ...action.topics])],
+      };
+    case 'restartThemeRun': {
+      const drop = new Set(action.topics);
+      return {
+        ...state,
+        answers: Object.fromEntries(Object.entries(state.answers).filter(([, a]) => !drop.has(a.topic))),
+        themeRunsDone: state.themeRunsDone.filter((t) => t !== action.theme),
+        completedTopics: state.completedTopics.filter((t) => !drop.has(t)),
+      };
+    }
     case 'completeTopic':
       return state.completedTopics.includes(action.topic)
         ? state

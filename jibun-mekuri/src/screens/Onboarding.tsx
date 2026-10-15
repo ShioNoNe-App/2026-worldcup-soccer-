@@ -3,6 +3,9 @@ import { BirthInputError, computeFourPillars } from '../engine/bazi/calendar';
 import { BRANCHES, STEMS, pillarLabel, type Pillar } from '../engine/bazi/constants';
 import { buildContext, checkQuestionFor, feedbackFor } from '../engine/diagnosis/engine';
 import { buildInitialReading } from '../engine/diagnosis/result';
+import { NAKSHATRAS, RASHIS, nakshatraName } from '../content/jyotish';
+import { TYPE_CODES, TYPES16, isTypeCode } from '../content/types16';
+import { NakshatraWheel } from '../ui/charts';
 import type { ThemeId, TraitId } from '../engine/diagnosis/types';
 import { localizeQuestion, pick } from '../content/localize';
 import { THEMES } from '../content/topics';
@@ -186,6 +189,32 @@ export function StylePicker() {
 
 // ============ STEP 3: 基本情報 ============
 
+/** 16タイプ（任意）の選択 */
+export function Type16Select({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const T = useT();
+  return (
+    <div className="field">
+      <label className="field-label" htmlFor="type16">
+        {T('16タイプ性格（MBTI®など）の結果（任意）', 'Your 16-type personality, e.g. MBTI® (optional)')}
+      </label>
+      <select id="type16" className="select" value={value} onChange={(e) => onChange(e.target.value)} data-testid="type16">
+        <option value="">{T('わからない・使わない', 'Don’t know / skip')}</option>
+        {TYPE_CODES.map((c) => (
+          <option key={c} value={c}>
+            {c}
+          </option>
+        ))}
+      </select>
+      <p className="small muted" style={{ margin: 0 }}>
+        {T(
+          '知っている場合だけ選んでください。占いの仮説に重ねて、診断をより具体的にします（このアプリはタイプを判定しません）。',
+          'Choose only if you know it. It’s layered onto the chart hypotheses to make the reading more specific (this app doesn’t determine your type).',
+        )}
+      </p>
+    </div>
+  );
+}
+
 export function ProfileForm() {
   const { state, dispatch } = useApp();
   const T = useT();
@@ -193,6 +222,7 @@ export function ProfileForm() {
   const [date, setDate] = useState<DateParts>(() => isoToParts(state.profile?.birthDate));
   const [knowsTime, setKnowsTime] = useState(Boolean(state.profile?.birthTime));
   const [time, setTime] = useState(state.profile?.birthTime ?? '');
+  const [type16, setType16] = useState(state.profile?.type16 ?? '');
   const [error, setError] = useState<string | null>(null);
 
   const submit = (e: React.FormEvent) => {
@@ -222,7 +252,7 @@ export function ProfileForm() {
       return;
     }
     setError(null);
-    dispatch({ type: 'setProfile', profile: { birthDate: iso, birthTime } });
+    dispatch({ type: 'setProfile', profile: { birthDate: iso, birthTime, type16: type16 || null } });
     dispatch({ type: 'go', screen: editing ? 'home' : 'reading' });
     window.scrollTo({ top: 0 });
   };
@@ -259,6 +289,7 @@ export function ProfileForm() {
                 <input id="birth-time" className="input" type="time" value={time} onChange={(e) => setTime(e.target.value)} />
               </div>
             )}
+            <Type16Select value={type16} onChange={setType16} />
             {error && (
               <p className="error" role="alert">
                 {error}
@@ -327,7 +358,7 @@ function PillarBox({ label, pillar, isDay, unknownLabel }: { label: string; pill
 }
 
 export function Reading() {
-  const { state, dispatch, chart, diag } = useApp();
+  const { state, dispatch, chart, diag, jyotish } = useApp();
   const T = useT();
   const lang = state.lang;
   const voice = voiceOf(state.style, lang);
@@ -478,6 +509,52 @@ export function Reading() {
         </p>
       ))}
     </div>,
+    jyotish ? (
+      <div className="card anim-flip" data-accent="self" key="j">
+        <SectionLabel n={6}>{T('インド占星術（ジョーティシュ）', 'Indian astrology (Jyotish)')}</SectionLabel>
+        <NakshatraWheel j={jyotish} lang={lang} />
+        <h2 style={{ marginTop: 8 }}>
+          {T(`月星座は${RASHIS[jyotish.moonSign].name.ja}`, `Your Moon is in ${RASHIS[jyotish.moonSign].name.en}`)}
+        </h2>
+        <p>{pick(RASHIS[jyotish.moonSign].mind, lang)}</p>
+        <p>
+          <strong>
+            {T(
+              `ナクシャトラ（27宿）：${nakshatraName(jyotish.nakshatra, 'ja')}（${NAKSHATRAS[jyotish.nakshatra].symbol.ja}）— ${NAKSHATRAS[jyotish.nakshatra].keyword.ja}`,
+              `Nakshatra: ${NAKSHATRAS[jyotish.nakshatra].name} (${NAKSHATRAS[jyotish.nakshatra].symbol.en}) — ${NAKSHATRAS[jyotish.nakshatra].keyword.en}`,
+            )}
+          </strong>
+          <br />
+          {pick(NAKSHATRAS[jyotish.nakshatra].text, lang)}
+        </p>
+        <p className="small muted" style={{ marginBottom: 0 }}>
+          {T(
+            `太陽星座（サイデリアル）：${RASHIS[jyotish.sunSign].name.ja}。インド占星術では、月が「心・感情」、太陽が「意志・活力」を表します。`,
+            `Sun sign (sidereal): ${RASHIS[jyotish.sunSign].name.en}. In Indian astrology, the Moon represents your mind and emotions, the Sun your will and vitality.`,
+          )}
+          {jyotish.ambiguous.length > 0 &&
+            T(
+              ' ※生まれた日に月が星座・宿を移動しているため、時刻がわかると結果が確定します（ここでは正午で計算）。',
+              ' * The Moon changed sign or nakshatra on your birth day, so your birth time would confirm this (calculated at noon here).',
+            )}
+        </p>
+      </div>
+    ) : null,
+    isTypeCode(state.profile?.type16) ? (
+      <div className="card anim-flip" data-accent="work" key="t16">
+        <SectionLabel n={7}>{T('16タイプ（自己申告）', '16 types (self-reported)')}</SectionLabel>
+        <h2>
+          {state.profile!.type16}：{pick(TYPES16[state.profile!.type16 as keyof typeof TYPES16].nickname, lang)}
+        </h2>
+        <p>{pick(TYPES16[state.profile!.type16 as keyof typeof TYPES16].summary, lang)}</p>
+        <p className="small muted" style={{ marginBottom: 0 }}>
+          {T(
+            '四柱推命・インド占星術の仮説と重ね合わせて、「じぶんマップ」で一致するところ・ズレるところを見られます。',
+            'It’s layered with the Four Pillars and Indian astrology hypotheses — see where they agree or differ in “My map.”',
+          )}
+        </p>
+      </div>
+    ) : null,
     checkQ ? (
       <div data-accent="love" key="5" style={{ position: 'relative' }}>
         <div className="char-header">
@@ -488,7 +565,7 @@ export function Reading() {
         </div>
         {checkAnswer ? (
           <div className="card anim-rise">
-            <SectionLabel n={6}>{T('ひとつだけ聞かせて', 'Just one question')}</SectionLabel>
+            <SectionLabel n={8}>{T('ひとつだけ聞かせて', 'Just one question')}</SectionLabel>
             <h2>{localizeQuestion(checkQ, lang).text}</h2>
             <p>
               {T('あなたの答え：', 'Your answer: ')}
@@ -520,7 +597,7 @@ export function Reading() {
             question={localizeQuestion(checkQ, lang)}
             onConfirm={confirmCheck}
             confirmLabel={T('この答えで決定', 'Confirm this answer')}
-            header={<SectionLabel n={6}>{T('ひとつだけ聞かせて', 'Just one question')}</SectionLabel>}
+            header={<SectionLabel n={8}>{T('ひとつだけ聞かせて', 'Just one question')}</SectionLabel>}
           />
         )}
       </div>
