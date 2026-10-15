@@ -1,0 +1,202 @@
+/*
+ * デザイントークン。
+ * data-style（pop / chic / game）でスタイル全体を、data-accent（テーマ）でアクセントを切り替える。
+ * 色の組み合わせは、本文テキストが WCAG AA（4.5:1）以上になるように選んでいる。
+ * *-ink は文字に使う濃いめの色、*-soft は背景用の淡い色。
+ */
+
+:root,
+[data-style='pop'] {
+  --font-body: 'Zen Maru Gothic', 'Hiragino Maru Gothic ProN', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+  --font-heading: var(--font-body);
+  --heading-weight: 700;
+  --heading-tracking: 0.02em;
+
+  --bg: #fff8ee;
+  --bg-image:
+    radial-gradient(circle at 12% 8%, rgba(203, 184, 240, 0.45) 0, transparent 34%),
+    radial-gradient(circle at 92% 22%, rgba(255, 196, 206, 0.5) 0, transparent 30%),
+    radial-gradient(circle at 30% 96%, rgba(178, 232, 214, 0.45) 0, transparent 32%);
+  --surface: #ffffff;
+  --surface-2: #fff4f6;
+  --text: #463b52;
+  --text-muted: #6d6178;
+  --line: #eadff0;
+  --primary: #7a59b8;
+  --primary-ink: #ffffff;
+  --primary-soft: #f0eafc;
+
+  --radius-card: 24px;
+  --radius-btn: 999px;
+  --radius-chip: 999px;
+  --border-width: 1px;
+  --border-color: #f1e6f4;
+  --shadow-card: 0 10px 28px rgba(122, 89, 184, 0.12);
+  --shadow-pop: 0 6px 16px rgba(122, 89, 184, 0.18);
+  --shadow-press: 0 2px 6px rgba(122, 89, 184, 0.18);
+  --focus: #7a59b8;
+
+  --accent: #b9a2e8;
+  --accent-ink: #6544a8;
+  --accent-soft: #f0eafc;
+}
+
+[data-style='pop'][data-accent='love'],
+[data-style='pop'] [data-accent='love'] {
+  --accent: #f497a9;
+  --accent-ink: #b23e5e;
+  --accent-soft: #ffe6ec;
+}
+[data-style='pop'][data-accent='work'],
+[data-style='pop'] [data-accent='work'] {
+  --accent: #6ec7b0;
+  --accent-ink: #1d7562;
+  --accent-soft: #e2f6f0;
+}
+[data-style='pop'][data-accent='relations'],
+[data-style='pop'] [data-accent='relations'] {
+  --accent: #f7c873;
+  --accent-ink: #855600;
+  --accent-soft: #fff3d6;
+}
+[data-style='pop'][data-accent='self'],
+[data-style='pop'] [data-accent='self'] {
+  --accent: #b9a2e8;
+  --accent-ink: #6544a8;
+  --accent-soft: #f0eafc;
+}
+[data-style='pop'][data-accent='life'],
+[data-style='pop'] [data-accent='life'] {
+  --accent: #f9b48a;
+  --accent-ink: #9a4a1a;
+  --accent-soft: #ffebdd;
+}
+
+/* ---------- おしゃれ・自己理解 ---------- */
+[data-style='chic'] {
+  --font-body: 'Noto Sans JP', 'Hiragino Sans', sans-serif;
+  --font-heading: 'Noto Serif JP', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+  --heading-weight: 600;
+  --heading-tracking: 0.06em;
+
+  --bg: #f6f2e9;
+  --bg-image: linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0) 240px);
+  --surface: #fffdf8;
+  --surface-2: #f1eee4;
+  --text: #2e3a32;
+  --text-muted: #56625a;
+  --line: #ddd7c8;
+  --primary: #4b6a55;
+  --primary-ink: #ffffff;
+  --primary-soft: #e6eee8;
+
+  --radius-card: 6px;
+  --radius-btn: 4px;
+  --radius-chip: 3px;
+  --border-width: 1px;
+  --border-color: #ddd7c8;
+  --shadow-card: none;
+  --shadow-pop: 0 1px 0 #ddd7c8;
+  --shadow-press: none;
+  --focus: #a5492f;
+
+  --accent: #d9785f;
+  --accent-ink: #a5492f;
+  --accent-soft: #f8e6df;
+}
+
+[data-style='chic'][data-accent='love'],
+[data-style='chic'] [data-accent='love'] {
+  --accent: #d9785f;
+  --accent-ink: #a5492f;
+  --accent-soft: #f8e6df;
+}
+[data-style='chic'][data-accent='work'],
+[data-style='chic'] [data-accent='work'] {
+  --accent: #6f8f7a;
+  --accent-ink: #3d5b47;
+  --accent-soft: #e6eee7;
+}
+[data-style='chic'][data-accent='relations'],
+[data-style='chic'] [data-accent='relations'] {
+  --accent: #d9b95c;
+  --accent-ink: #735a0c;
+  --accent-soft: #f6efd5;
+}
+[data-style='chic'][data-accent='self'],
+[data-style='chic'] [data-accent='self'] {
+  --accent: #8d8ab8;
+  --accent-ink: #4f4c7f;
+  --accent-soft: #ecebf5;
+}
+[data-style='chic'][data-accent='life'],
+[data-style='chic'] [data-accent='life'] {
+  --accent: #c98e6a;
+  --accent-ink: #7d4a2a;
+  --accent-soft: #f3e6dc;
+}
+
+/* ---------- キャラ・ゲーム ---------- */
+[data-style='game'] {
+  --font-body: 'M PLUS Rounded 1c', 'Hiragino Maru Gothic ProN', 'Hiragino Sans', sans-serif;
+  --font-heading: var(--font-body);
+  --heading-weight: 800;
+  --heading-tracking: 0.01em;
+
+  --bg: #fff5e3;
+  --bg-image: radial-gradient(rgba(35, 32, 58, 0.08) 1.2px, transparent 1.2px);
+  --bg-size: 18px 18px;
+  --surface: #ffffff;
+  --surface-2: #fff1d6;
+  --text: #23203a;
+  --text-muted: #4f4b66;
+  --line: #23203a;
+  --primary: #5b3cc4;
+  --primary-ink: #ffffff;
+  --primary-soft: #ece6ff;
+
+  --radius-card: 18px;
+  --radius-btn: 14px;
+  --radius-chip: 10px;
+  --border-width: 2.5px;
+  --border-color: #23203a;
+  --shadow-card: 4px 4px 0 #23203a;
+  --shadow-pop: 3px 3px 0 #23203a;
+  --shadow-press: 1px 1px 0 #23203a;
+  --focus: #0b6e68;
+
+  --accent: #7b5ce0;
+  --accent-ink: #5b3cc4;
+  --accent-soft: #ece6ff;
+}
+
+[data-style='game'][data-accent='love'],
+[data-style='game'] [data-accent='love'] {
+  --accent: #ff6b6b;
+  --accent-ink: #b8283a;
+  --accent-soft: #ffe3e3;
+}
+[data-style='game'][data-accent='work'],
+[data-style='game'] [data-accent='work'] {
+  --accent: #1fb5ad;
+  --accent-ink: #0b6660;
+  --accent-soft: #d7f5f3;
+}
+[data-style='game'][data-accent='relations'],
+[data-style='game'] [data-accent='relations'] {
+  --accent: #ffc93c;
+  --accent-ink: #6e4d00;
+  --accent-soft: #fff1c7;
+}
+[data-style='game'][data-accent='self'],
+[data-style='game'] [data-accent='self'] {
+  --accent: #7b5ce0;
+  --accent-ink: #5b3cc4;
+  --accent-soft: #ece6ff;
+}
+[data-style='game'][data-accent='life'],
+[data-style='game'] [data-accent='life'] {
+  --accent: #ff9f43;
+  --accent-ink: #994700;
+  --accent-soft: #ffe8d1;
+}
