@@ -1801,3 +1801,45 @@ li {
     font-size: 0.72rem;
   }
 }
+
+/* ================= 運営者情報 ================= */
+
+.profile {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.profile-icon {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 1.6rem;
+  background: var(--accent-soft);
+  border: var(--border-width) solid var(--border-color);
+}
+
+.social-icons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.social-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--text);
+  background: var(--surface);
+  border: var(--border-width) solid var(--border-color);
+}
+
+.site-footer {
+  text-align: center;
+  margin-top: 24px;
+}

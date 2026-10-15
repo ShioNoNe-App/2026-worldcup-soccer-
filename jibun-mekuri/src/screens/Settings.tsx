@@ -5,6 +5,7 @@ import { THEME_BY_ID } from '../content/topics';
 import { useApp, useT } from '../state/AppContext';
 import { Dialog, SectionLabel, TopBar } from '../ui/common';
 import { STYLE_INFO, StyleOptions, Type16Select } from './Onboarding';
+import { OperatorSection, SiteFooter } from '../ui/Operator';
 
 export function Settings() {
   const { state, dispatch, deleteAll, notify } = useApp();
@@ -105,9 +106,10 @@ export function Settings() {
 
         <p className="center" style={{ marginTop: 16 }}>
           <button type="button" className="btn btn-ghost" onClick={() => dispatch({ type: 'go', screen: 'about' })}>
-            {T('計算方法・プライバシー・注意事項', 'How it works, privacy & notes')}
+            {T('計算方法・プライバシー・運営者情報', 'How it works, privacy & operator')}
           </button>
         </p>
+        <SiteFooter />
       </main>
       {confirmDelete && (
         <Dialog title={T('保存データを削除しますか？', 'Delete saved data?')} onClose={() => setConfirmDelete(false)}>
@@ -149,7 +151,7 @@ export function About() {
   const ul = { paddingLeft: '1.2em' };
   return (
     <>
-      <TopBar title={T('計算方法・プライバシー', 'How it works & privacy')} onBack={back} />
+      <TopBar title={T('このアプリについて', 'About this app')} onBack={back} />
       <main className="main">
         <section className="card">
           <SectionLabel n={1}>{T('このアプリについて', 'About this app')}</SectionLabel>
@@ -272,6 +274,8 @@ export function About() {
             </ul>
           )}
         </section>
+        <OperatorSection n={5} />
+        <SiteFooter />
       </main>
     </>
   );

@@ -17,6 +17,7 @@ import { DateSelect, isoToParts, partsToIso, type DateParts } from '../ui/DateSe
 import { loadStyleFonts } from '../ui/fonts';
 import { QuestionCard } from '../ui/QuestionCard';
 import { voiceOf } from '../ui/voice';
+import { SiteFooter } from '../ui/Operator';
 
 // ============ STEP 1: ウェルカム ============
 
@@ -53,9 +54,10 @@ export function Welcome() {
         </div>
         <p className="center" style={{ marginTop: 16 }}>
           <button type="button" className="btn-ghost btn" onClick={() => dispatch({ type: 'go', screen: 'about' })}>
-            {T('計算方法・プライバシー・注意事項', 'How it works, privacy & notes')}
+            {T('計算方法・プライバシー・運営者情報', 'How it works, privacy & operator')}
           </button>
         </p>
+        <SiteFooter />
       </main>
     </>
   );

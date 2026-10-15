@@ -5,3 +5,4 @@ playwright-report
 *.tsbuildinfo
 .netlify
 jibun-mekuri-dist.zip
+ad-assets

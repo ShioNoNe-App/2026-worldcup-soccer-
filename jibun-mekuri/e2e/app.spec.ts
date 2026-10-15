@@ -403,3 +403,13 @@ test('16タイプを入力すると、じぶんマップのチャートと3つ�
   expect(await page.locator('.manual-item.is-locked').count()).toBeLessThan(lockedBefore);
   await expect(page.getByTestId('understanding')).toContainText('Lv.');
 });
+
+test('運営者情報とお問い合わせが見られる', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: /計算方法・プライバシー・運営者情報/ }).click();
+  const op = page.getByTestId('operator');
+  await expect(op).toContainText('KAGURA VOID');
+  await expect(op).toContainText('占いファン');
+  await expect(op.getByRole('link', { name: 'stop2ask@gmail.com' })).toHaveAttribute('href', 'mailto:stop2ask@gmail.com');
+  await expect(op.getByRole('link', { name: 'YouTube' })).toHaveAttribute('target', '_blank');
+});
