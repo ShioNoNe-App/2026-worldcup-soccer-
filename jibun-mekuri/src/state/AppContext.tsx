@@ -36,7 +36,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // 何も入力していない初期状態は保存しない（削除直後に空データを書き戻さない）
-    const pristine = !state.profile && !state.styleChosen && Object.keys(state.answers).length === 0;
+    const pristine = !state.profile && !state.styleChosen && state.lang === 'ja' && Object.keys(state.answers).length === 0;
     if (pristine) clearState();
     else saveState(state);
   }, [state]);
@@ -44,10 +44,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const root = document.documentElement;
     root.dataset.style = state.style;
+    root.lang = state.lang;
     loadStyleFonts(state.style);
     if (state.motion === 'reduce') root.dataset.motion = 'reduce';
     else delete root.dataset.motion;
-  }, [state.style, state.motion]);
+  }, [state.style, state.motion, state.lang]);
 
   useEffect(() => {
     const onHide = () => dispatch({ type: 'visited', at: Date.now() });
@@ -99,4 +100,10 @@ export function useApp(): AppContextValue {
   const v = useContext(Ctx);
   if (!v) throw new Error('AppProvider がありません');
   return v;
+}
+
+/** 日英の文言を選ぶ: T('日本語', 'English') */
+export function useT(): (ja: string, en: string) => string {
+  const { state } = useApp();
+  return (ja, en) => (state.lang === 'en' ? en : ja);
 }

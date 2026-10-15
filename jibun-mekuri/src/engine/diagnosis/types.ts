@@ -1,5 +1,12 @@
 // 診断エンジンの型定義。質問・選択肢・分岐条件・結果テンプレートはデータ（content/）で定義する。
-import type { ChartAnalysis } from '../bazi/analysis';
+import type { ChartAnalysis, StarGroup } from '../bazi/analysis';
+import type { Element } from '../bazi/constants';
+
+/** 日英併記のテキスト */
+export interface L {
+  ja: string;
+  en: string;
+}
 
 export type ThemeId = 'love' | 'work' | 'relations' | 'self' | 'life';
 
@@ -42,10 +49,16 @@ export interface TraitDef {
   mid: { keyword: string; summary: string };
 }
 
+/** 仮説の根拠（表示時に言語に合わせて文章化する） */
+export type BasisRef =
+  | { kind: 'dayMaster'; stem: number }
+  | { kind: 'group'; group: StarGroup; count: number }
+  | { kind: 'element'; element: Element; count: number };
+
 /** 命式から導いた仮説の初期値 */
 export interface Prior {
   value: number;
-  basis: string[];
+  basis: BasisRef[];
 }
 
 export type TraitStatus =
@@ -63,7 +76,7 @@ export type TraitStatus =
 export interface TraitState {
   id: TraitId;
   prior: number;
-  basis: string[];
+  basis: BasisRef[];
   /** 本人の回答による位置（-1〜1）。未回答は null */
   self: number | null;
   selfCount: number;
@@ -111,6 +124,8 @@ export interface QuestionDef {
   fact?: boolean;
   /** 大きいほど先に出る */
   priority?: number;
+  /** 確認質問: どちらの向きの仮説を確かめているか */
+  checkPole?: 'pos' | 'neg';
 }
 
 export interface AnswerRecord {
@@ -137,18 +152,36 @@ export interface ResultPoint {
   source: PointSource;
 }
 
+export type IntroDef =
+  /** 日干の解釈文を使う */
+  | { kind: 'dm'; field: 'love' | 'work' | 'relations' | 'essenceSelf' }
+  /** 固定文＋（あれば）命式の仮説ひとこと＋後文 */
+  | { kind: 'text'; text: L; hyp?: TraitId[]; after?: L }
+  | { kind: 'backfire' }
+  | { kind: 'balance' };
+
+export interface ExtraDef {
+  /** いずれかのタグが立っていれば追加（空配列なら常に） */
+  any: string[];
+  kind: PointKind;
+  text: L;
+  source?: PointSource;
+}
+
 export interface TopicDef {
   id: string;
   theme: ThemeId;
-  title: string;
+  title: L;
   /** 選択肢として表示する問いかけ */
-  ask: string;
+  ask: L;
   traits: TraitId[];
   maxQuestions: number;
   /** テーマを開いたときの最初の解釈（命式ベース） */
-  intro: (ctx: DiagnosisContext) => string;
+  intro: IntroDef;
   /** 回答タグに応じた追加ポイント */
-  extras?: (ctx: DiagnosisContext) => ResultPoint[];
+  extras?: ExtraDef[];
+  /** 日干の強み・注意点を結果に加える */
+  dmExtras?: ('strength0' | 'caution0')[];
   related: string[];
   special?: 'compat' | 'yearly';
   /** 結果で注意点を強調する（強みが裏目に出る条件など） */

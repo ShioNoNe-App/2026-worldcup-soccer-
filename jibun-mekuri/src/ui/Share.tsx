@@ -2,7 +2,7 @@
 // 生年月日・命式・相手の情報・自由記述は含めない。
 import { useRef, useState } from 'react';
 import type { ThemeId } from '../engine/diagnosis/types';
-import { useApp } from '../state/AppContext';
+import { useApp, useT } from '../state/AppContext';
 import type { StyleId } from '../state/types';
 import { Character } from './Character';
 import { Dialog } from './common';
@@ -15,17 +15,20 @@ export interface ShareContent {
   theme?: ThemeId;
 }
 
-export function shareText(c: ShareContent): string {
+export function shareText(c: ShareContent, lang: 'ja' | 'en' = 'ja'): string {
   const kw = c.keywords.length ? `\n${c.keywords.map((k) => `#${k.replace(/\s/g, '')}`).join(' ')}` : '';
-  return `【じぶんめくり】${c.title}は…\n${c.headline}${kw}\n#じぶんめくり`;
+  return lang === 'en'
+    ? `[Jibun Mekuri] ${c.title}:\n${c.headline}${kw}\n#JibunMekuri`
+    : `【じぶんめくり】${c.title}は…\n${c.headline}${kw}\n#じぶんめくり`;
 }
 
 export function ShareButton(props: ShareContent) {
+  const T = useT();
   const [open, setOpen] = useState(false);
   return (
     <>
       <button type="button" className="btn" onClick={() => setOpen(true)}>
-        <span aria-hidden="true">↗</span> シェアする
+        <span aria-hidden="true">↗</span> {T('シェアする', 'Share')}
       </button>
       {open && <ShareDialog content={props} onClose={() => setOpen(false)} />}
     </>
@@ -34,26 +37,27 @@ export function ShareButton(props: ShareContent) {
 
 function ShareDialog({ content, onClose }: { content: ShareContent; onClose: () => void }) {
   const { state } = useApp();
+  const T = useT();
   const cardRef = useRef<HTMLDivElement>(null);
   const [status, setStatus] = useState<string | null>(null);
-  const text = shareText(content);
+  const text = shareText(content, state.lang);
   const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
 
   const doShare = async () => {
     try {
-      await navigator.share({ title: 'じぶんめくり', text });
-      setStatus('シェアしました');
+      await navigator.share({ title: T('じぶんめくり', 'Jibun Mekuri'), text });
+      setStatus(T('シェアしました', 'Shared'));
     } catch (e) {
-      if ((e as DOMException)?.name !== 'AbortError') setStatus('シェアできませんでした。テキストのコピーをお試しください');
+      if ((e as DOMException)?.name !== 'AbortError') setStatus(T('シェアできませんでした。テキストのコピーをお試しください', 'Couldn’t share. Try copying the text instead.'));
     }
   };
 
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(text);
-      setStatus('テキストをコピーしました');
+      setStatus(T('テキストをコピーしました', 'Text copied'));
     } catch {
-      setStatus('コピーできませんでした。下のテキストを長押しして選択してください');
+      setStatus(T('コピーできませんでした。下のテキストを長押しして選択してください', 'Couldn’t copy. Long-press the text below to select it.'));
     }
   };
 
@@ -61,7 +65,7 @@ function ShareDialog({ content, onClose }: { content: ShareContent; onClose: () 
     const el = cardRef.current;
     if (!el) return;
     try {
-      const blob = await renderShareImage(content, state.style, getComputedStyle(el));
+      const blob = await renderShareImage(content, state.style, getComputedStyle(el), T('じぶんめくり', 'Jibun Mekuri'));
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -70,16 +74,16 @@ function ShareDialog({ content, onClose }: { content: ShareContent; onClose: () 
       a.click();
       a.remove();
       window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-      setStatus('画像を保存しました');
+      setStatus(T('画像を保存しました', 'Image saved'));
     } catch {
-      setStatus('画像を作成できませんでした');
+      setStatus(T('画像を作成できませんでした', 'Couldn’t create the image'));
     }
   };
 
   return (
-    <Dialog title="結果をシェア" onClose={onClose}>
+    <Dialog title={T('結果をシェア', 'Share your result')} onClose={onClose}>
       <div className="share-card" ref={cardRef} data-accent={content.theme} data-testid="share-card">
-        <Character styleId={state.style} mood="happy" theme={content.theme ?? null} size={64} />
+        <Character styleId={state.style} mood="happy" theme={content.theme ?? null} size={64} lang={state.lang} />
         <div className="s-title">{content.title}</div>
         <div className="s-head">{content.headline}</div>
         {content.keywords.length > 0 && (
@@ -92,26 +96,26 @@ function ShareDialog({ content, onClose }: { content: ShareContent; onClose: () 
           </div>
         )}
         <p className="small muted" style={{ marginTop: 10, marginBottom: 0 }}>
-          じぶんめくり
+          {T('じぶんめくり', 'Jibun Mekuri')}
         </p>
       </div>
       <p className="small muted" style={{ marginTop: 12 }}>
-        シェアされるのは上のカードの内容だけです。生年月日や回答の内容は含まれません。
+        {T('シェアされるのは上のカードの内容だけです。生年月日や回答の内容は含まれません。', 'Only the card above is shared — never your birth date or answers.')}
       </p>
       <div className="stack" style={{ marginTop: 12 }}>
         {canShare && (
           <button type="button" className="btn btn-block" onClick={doShare}>
-            シェアする
+            {T('シェアする', 'Share')}
           </button>
         )}
         <button type="button" className={`btn btn-block ${canShare ? 'btn-secondary' : ''}`} onClick={copy}>
-          テキストをコピー
+          {T('テキストをコピー', 'Copy text')}
         </button>
         <button type="button" className="btn btn-secondary btn-block" onClick={saveImage}>
-          画像を保存
+          {T('画像を保存', 'Save image')}
         </button>
         <button type="button" className="btn btn-ghost btn-block" onClick={onClose}>
-          閉じる
+          {T('閉じる', 'Close')}
         </button>
       </div>
       <p role="status" aria-live="polite" className="small" style={{ minHeight: '1.5em', marginTop: 8 }}>
@@ -120,7 +124,7 @@ function ShareDialog({ content, onClose }: { content: ShareContent; onClose: () 
       <textarea
         readOnly
         value={text}
-        aria-label="シェア用テキスト"
+        aria-label={T('シェア用テキスト', 'Text to share')}
         className="input"
         style={{ minHeight: 96, resize: 'vertical' }}
         onFocus={(e) => e.currentTarget.select()}
@@ -130,7 +134,7 @@ function ShareDialog({ content, onClose }: { content: ShareContent; onClose: () 
 }
 
 /** シェア用の画像を canvas で描く（スタイルの色と形を反映） */
-async function renderShareImage(c: ShareContent, style: StyleId, cs: CSSStyleDeclaration): Promise<Blob> {
+async function renderShareImage(c: ShareContent, style: StyleId, cs: CSSStyleDeclaration, brand: string): Promise<Blob> {
   const W = 1080;
   const H = 1080;
   const canvas = document.createElement('canvas');
@@ -211,7 +215,7 @@ async function renderShareImage(c: ShareContent, style: StyleId, cs: CSSStyleDec
   ctx.textAlign = 'center';
   ctx.fillStyle = text;
   ctx.font = `700 34px ${font}`;
-  ctx.fillText('じぶんめくり', W / 2, H - 70);
+  ctx.fillText(brand, W / 2, H - 70);
 
   return new Promise((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('blob'))), 'image/png'));
 }

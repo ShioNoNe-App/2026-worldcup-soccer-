@@ -5,10 +5,9 @@ import { Home, ThemeScreen, TopicScreen } from './screens/Explore';
 import { MapScreen } from './screens/MapScreen';
 import { ProfileForm, Reading, StylePicker, ThemePicker, Welcome } from './screens/Onboarding';
 import { About, Settings } from './screens/Settings';
-import { BottomNav, Toasts } from './ui/common';
+import { Toasts } from './ui/common';
 
 const NEEDS_CHART: Screen[] = ['reading', 'themes', 'home', 'theme', 'topic', 'map'];
-const WITH_NAV: Screen[] = ['home', 'theme', 'topic', 'map', 'settings'];
 
 export function App() {
   const { state, chart } = useApp();
@@ -20,16 +19,15 @@ export function App() {
   if (screen === 'settings' && !state.onboarded) screen = 'welcome';
 
   useEffect(() => {
-    document.title = 'じぶんめくり｜占いで、じぶんをめくる';
-  }, []);
+    document.title = state.lang === 'en' ? 'Jibun Mekuri — flip through yourself' : 'じぶんめくり｜占いで、じぶんをめくる';
+  }, [state.lang]);
 
   const accent = screen === 'theme' || screen === 'topic' ? (state.activeTheme ?? undefined) : undefined;
-  const showNav = state.onboarded && (WITH_NAV.includes(screen) || (screen === 'themes' && state.onboarded) || screen === 'about');
 
   return (
     <div className="app" data-accent={accent} data-screen={screen}>
       <a href="#content" className="sr-only">
-        本文へ移動
+        {state.lang === 'en' ? 'Skip to content' : '本文へ移動'}
       </a>
       <div id="content">
         {screen === 'welcome' && <Welcome />}
@@ -44,7 +42,6 @@ export function App() {
         {screen === 'settings' && <Settings />}
         {screen === 'about' && <About />}
       </div>
-      {showNav && <BottomNav />}
       <Toasts />
     </div>
   );

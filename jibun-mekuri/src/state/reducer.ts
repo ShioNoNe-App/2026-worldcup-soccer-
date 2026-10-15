@@ -1,5 +1,6 @@
 import type { Pillar } from '../engine/bazi/constants';
 import type { ThemeId, TraitId } from '../engine/diagnosis/types';
+import type { Lang } from '../i18n/lang';
 import { initialState, type AppState, type Profile, type Screen, type StyleId } from './types';
 
 export type Action =
@@ -11,6 +12,9 @@ export type Action =
   | { type: 'addTheme'; theme: ThemeId }
   | { type: 'finishOnboarding' }
   | { type: 'answer'; questionId: string; optionId: string; topic: string; at: number }
+  | { type: 'undoAnswer'; questionId: string }
+  | { type: 'setThemes'; themes: ThemeId[] }
+  | { type: 'setLang'; lang: Lang }
   | { type: 'completeTopic'; topic: string }
   | { type: 'moreQuestions'; topic: string; count: number }
   | { type: 'restartTopic'; topic: string }
@@ -74,6 +78,19 @@ export function reducer(state: AppState, action: Action): AppState {
         ...state,
         answers: { ...state.answers, [action.questionId]: { optionId: action.optionId, topic: action.topic, at: action.at } },
       };
+    case 'undoAnswer': {
+      if (!state.answers[action.questionId]) return state;
+      const { [action.questionId]: removed, ...answers } = state.answers;
+      return {
+        ...state,
+        answers,
+        completedTopics: state.completedTopics.filter((t) => t !== removed.topic),
+      };
+    }
+    case 'setThemes':
+      return { ...state, selectedThemes: action.themes };
+    case 'setLang':
+      return { ...state, lang: action.lang };
     case 'completeTopic':
       return state.completedTopics.includes(action.topic)
         ? state
@@ -109,7 +126,8 @@ export function reducer(state: AppState, action: Action): AppState {
       return { ...state, lastVisit: action.at };
     case 'reset': {
       const fresh = initialState();
-      return action.keepStyle ? { ...fresh, style: state.style, styleChosen: state.styleChosen } : fresh;
+      const base = { ...fresh, lang: state.lang };
+      return action.keepStyle ? { ...base, style: state.style, styleChosen: state.styleChosen } : base;
     }
   }
 }

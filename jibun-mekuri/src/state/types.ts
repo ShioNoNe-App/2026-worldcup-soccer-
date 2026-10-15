@@ -1,5 +1,6 @@
 import type { Pillar } from '../engine/bazi/constants';
 import type { Answers, ThemeId, TraitId } from '../engine/diagnosis/types';
+import type { Lang } from '../i18n/lang';
 
 export type StyleId = 'pop' | 'chic' | 'game';
 export const STYLE_IDS: StyleId[] = ['pop', 'chic', 'game'];
@@ -45,6 +46,7 @@ export interface AppState {
   /** 相性: 相手の日柱のみ保存（相手の生年月日は保存しない） */
   compat: { partnerDay: Pillar } | null;
   motion: 'auto' | 'reduce';
+  lang: Lang;
   lastVisit: number | null;
 }
 
@@ -66,6 +68,7 @@ export function initialState(): AppState {
     seenTraits: [],
     compat: null,
     motion: 'auto',
+    lang: 'ja',
     lastVisit: null,
   };
 }

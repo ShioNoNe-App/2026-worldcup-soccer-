@@ -91,13 +91,10 @@ select {
   flex-direction: column;
 }
 
+/* 画面下部（特に右下）はホスティングのバッジなどが重なることがあるため、余白を空けておく */
 .main {
   flex: 1;
-  padding: 8px 16px 112px;
-}
-
-.main.no-nav {
-  padding-bottom: 40px;
+  padding: 8px 16px 120px;
 }
 
 .stack > * + * {
@@ -123,17 +120,38 @@ select {
   font-size: 0.86rem;
 }
 
-.topbar {
+.app-header {
   position: sticky;
   top: 0;
   z-index: 20;
+  background: color-mix(in srgb, var(--bg) 90%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+}
+
+.topbar {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 12px;
-  background: color-mix(in srgb, var(--bg) 88%, transparent);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  padding: 8px 12px;
+  min-height: 60px;
+}
+
+.lang-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 6px 12px;
+  flex-shrink: 0;
+  border-radius: var(--radius-btn);
+  border: var(--border-width) solid var(--border-color);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 .topbar-title {
@@ -429,14 +447,14 @@ select {
   font-size: 0.92rem;
 }
 
-.option[aria-pressed='true'],
+.option[aria-checked='true'],
 .select-card[aria-checked='true'],
 .select-card[aria-pressed='true'] {
   border-color: var(--accent-ink);
   background: var(--accent-soft);
 }
 
-.option[aria-pressed='true'] .mark {
+.option[aria-checked='true'] .mark {
   background: var(--accent-ink);
   border-color: var(--accent-ink);
 }
@@ -939,43 +957,32 @@ select {
 
 /* ================= ナビ・ダイアログ ================= */
 
-.bottom-nav {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 30;
-  display: flex;
-  justify-content: center;
-  padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
-  background: color-mix(in srgb, var(--surface) 92%, transparent);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-top: var(--border-width) solid var(--border-color);
+.tab-nav {
+  padding: 0 12px 8px;
 }
 
-.bottom-nav ul {
+.tab-nav ul {
   display: flex;
-  gap: 4px;
-  width: 100%;
-  max-width: 520px;
+  gap: 6px;
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-.bottom-nav li {
+.tab-nav li {
   flex: 1;
 }
 
 .nav-btn {
   width: 100%;
-  min-height: 52px;
+  min-height: 44px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 6px;
+  padding: 4px 6px;
+  line-height: 1.2;
   border: none;
   background: transparent;
   color: var(--text-muted);
@@ -986,8 +993,9 @@ select {
 }
 
 .nav-btn svg {
-  width: 22px;
-  height: 22px;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
 }
 
 .nav-btn[aria-current='page'] {
@@ -997,13 +1005,9 @@ select {
 
 .sticky-actions {
   position: sticky;
-  bottom: 84px;
+  bottom: 76px;
   z-index: 10;
   padding: 12px 0 0;
-}
-
-.no-nav .sticky-actions {
-  bottom: 12px;
 }
 
 .dialog-backdrop {
@@ -1040,7 +1044,7 @@ select {
 
 .toast-region {
   position: fixed;
-  bottom: calc(88px + env(safe-area-inset-bottom));
+  top: 124px;
   left: 0;
   right: 0;
   z-index: 70;
@@ -1435,4 +1439,153 @@ li {
   z-index: -1;
   background: linear-gradient(to bottom, transparent, var(--bg) 40%);
   pointer-events: none;
+}
+
+/* ================= 残りの質問数 ================= */
+
+.remain {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 6px 10px;
+  margin: 4px 0 12px;
+}
+
+.remain-pop {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--accent-ink);
+  color: #fff;
+  font-weight: 800;
+  font-size: 1rem;
+  white-space: nowrap;
+}
+
+.remain-pop::before {
+  content: '★';
+  margin-right: 6px;
+  font-size: 0.85em;
+}
+
+.remain-pop.is-last {
+  background: var(--primary);
+}
+
+[data-style='game'] .remain-pop {
+  border: 2.5px solid var(--border-color);
+  box-shadow: var(--shadow-pop);
+  font-size: 1.05rem;
+}
+
+[data-style='chic'] .remain-pop {
+  border-radius: 3px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  letter-spacing: 0.06em;
+}
+
+[data-style='chic'] .remain-pop::before {
+  content: none;
+}
+
+.remain-step {
+  justify-self: end;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.remain-track {
+  grid-column: 1 / -1;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+[data-style='game'] .remain-track {
+  height: 12px;
+  border: 2px solid var(--border-color);
+}
+
+.remain-fill {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  border-radius: inherit;
+  transition: width 0.35s ease;
+}
+
+.q-actions {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.q-actions .btn {
+  min-width: 0;
+}
+
+.count-chip {
+  flex-shrink: 0;
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--radius-chip);
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  white-space: nowrap;
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 28px;
+}
+
+.section-head h2 {
+  margin: 0;
+}
+
+.option[aria-checked='true'] {
+  box-shadow: 0 0 0 2px var(--accent-ink) inset;
+  font-weight: 700;
+}
+
+/* 固定ヘッダーの下に隠れないように */
+[data-testid='question-card'],
+[data-testid='topic-result'],
+.main [tabindex='-1'] {
+  scroll-margin-top: 132px;
+}
+
+.answer-feedback {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  margin: -4px 0 12px;
+  border-radius: calc(var(--radius-card) * 0.5);
+  background: var(--accent-soft);
+}
+
+.answer-feedback .af-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.answer-feedback .keyword-pop {
+  font-size: 0.8rem;
+  padding: 3px 10px;
 }

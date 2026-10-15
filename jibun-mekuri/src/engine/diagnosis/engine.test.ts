@@ -32,7 +32,7 @@ describe('命式からの仮説', () => {
   it('日干の解釈を根拠に仮説が立つ', () => {
     const priors = priorsFromChart(chart);
     expect(priors.marriage_view.value).toBeGreaterThan(0.2);
-    expect(priors.marriage_view.basis.join()).toContain('日干「戊（山）」');
+    expect(priors.marriage_view.basis).toContainEqual({ kind: 'dayMaster', stem: 4 });
   });
 });
 

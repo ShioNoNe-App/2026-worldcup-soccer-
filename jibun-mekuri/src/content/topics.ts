@@ -1,203 +1,335 @@
-// サブテーマ（「今、何が気になっているか」）の定義。
-import type { DiagnosisContext, ResultPoint, ThemeId, TopicDef, TraitId } from '../engine/diagnosis/types';
-import { DAY_MASTERS } from './dayMasters';
-import { TRAIT_BY_ID } from './traits';
+// サブテーマ（「今、何が気になっているか」）の定義。文章は日英併記。
+// extras: 回答タグ（any のいずれか。空配列なら常に）に応じて結果に加えるポイント。
+import type { ThemeId, TopicDef } from '../engine/diagnosis/types';
 
-const dm = (ctx: DiagnosisContext) => DAY_MASTERS[ctx.chart.dayStem];
-
-/** 命式からの仮説を、占いの解釈としてやわらかく述べる */
-function hypothesisLine(ctx: DiagnosisContext, trait: TraitId): string | null {
-  const t = ctx.traits[trait];
-  if (t.status !== 'hypothesis' || Math.abs(t.prior) < 0.2) return null;
-  const pole = t.prior > 0 ? TRAIT_BY_ID[trait].pos : TRAIT_BY_ID[trait].neg;
-  return `占いの解釈では「${pole.keyword}」の傾向が示唆されています。`;
-}
-
-function firstHypothesis(ctx: DiagnosisContext, traits: TraitId[]): string {
-  for (const t of traits) {
-    const line = hypothesisLine(ctx, t);
-    if (line) return line;
-  }
-  return '';
-}
-
-const note = (text: string, source: ResultPoint['source'] = 'answer'): ResultPoint => ({ kind: 'note', text, source });
-const tip = (text: string, source: ResultPoint['source'] = 'answer'): ResultPoint => ({ kind: 'tip', text, source });
-const has = (ctx: DiagnosisContext, tag: string) => ctx.tags.has(tag);
-
-export const THEMES: { id: ThemeId; title: string; short: string; lead: string; featured: boolean }[] = [
-  { id: 'love', title: '恋愛・結婚・相性', short: '恋愛', lead: '片思い、相性、結婚観。恋のクセを知ろう', featured: true },
-  { id: 'work', title: '仕事・才能・キャリア', short: '仕事', lead: '強み、向いている働き方、次の一手', featured: true },
-  { id: 'relations', title: '友達・家族・人間関係', short: '人間関係', lead: 'グループでの役割や、すれ違いの解き方', featured: false },
-  { id: 'self', title: '自分の性格・本当の自分', short: '本当の自分', lead: '人から見た自分と、内側の自分', featured: false },
-  { id: 'life', title: '人生全体・これからの運勢', short: '運勢', lead: '今年と来年の流れ、これからの方向', featured: false },
+export const THEMES: { id: ThemeId; title: { ja: string; en: string }; short: { ja: string; en: string }; lead: { ja: string; en: string }; featured: boolean }[] = [
+  {
+    id: 'love',
+    title: { ja: '恋愛・結婚・相性', en: 'Love, Marriage & Compatibility' },
+    short: { ja: '恋愛', en: 'Love' },
+    lead: { ja: '片思い、相性、結婚観。恋のクセを知ろう', en: 'Crushes, compatibility, marriage — learn your love habits' },
+    featured: true,
+  },
+  {
+    id: 'work',
+    title: { ja: '仕事・才能・キャリア', en: 'Work, Talent & Career' },
+    short: { ja: '仕事', en: 'Work' },
+    lead: { ja: '強み、向いている働き方、次の一手', en: 'Strengths, how you work best, your next move' },
+    featured: true,
+  },
+  {
+    id: 'relations',
+    title: { ja: '友達・家族・人間関係', en: 'Friends, Family & Relationships' },
+    short: { ja: '人間関係', en: 'Relationships' },
+    lead: { ja: 'グループでの役割や、すれ違いの解き方', en: 'Your role in groups and how you resolve friction' },
+    featured: false,
+  },
+  {
+    id: 'self',
+    title: { ja: '自分の性格・本当の自分', en: 'Personality & True Self' },
+    short: { ja: '本当の自分', en: 'True self' },
+    lead: { ja: '人から見た自分と、内側の自分', en: 'How others see you vs. the inner you' },
+    featured: false,
+  },
+  {
+    id: 'life',
+    title: { ja: '人生全体・これからの運勢', en: 'Life & Fortune Ahead' },
+    short: { ja: '運勢', en: 'Fortune' },
+    lead: { ja: '今年と来年の流れ、これからの方向', en: 'This year and next, and where you’re heading' },
+    featured: false,
+  },
 ];
 
 export const THEME_BY_ID = Object.fromEntries(THEMES.map((t) => [t.id, t])) as Record<ThemeId, (typeof THEMES)[number]>;
+
+const STRESS_EXTRAS: TopicDef['extras'] = [
+  {
+    any: ['stress:micro'],
+    kind: 'tip',
+    text: {
+      ja: '細かい管理がつらいなら、先に「進め方の提案」を出してしまうと、任せてもらいやすくなります。',
+      en: 'If micromanagement wears you down, propose your plan first — people are more likely to trust you with it.',
+    },
+  },
+  {
+    any: ['stress:vague'],
+    kind: 'tip',
+    text: {
+      ja: 'ゴールがあいまいなときは、「完成したらどうなっていればOK？」を最初に確認しましょう。',
+      en: 'When the goal is fuzzy, first ask: "What does done look like?"',
+    },
+  },
+  {
+    any: ['stress:people'],
+    kind: 'tip',
+    text: {
+      ja: '人への気づかいで疲れるなら、ひとりで集中できる時間をカレンダーに先に確保しておくのがおすすめ。',
+      en: 'If tiptoeing around people tires you, block time on your calendar to focus alone.',
+    },
+  },
+  {
+    any: ['stress:routine'],
+    kind: 'tip',
+    text: {
+      ja: 'くり返しがつらいなら、毎回ひとつだけ「やり方を変えてみる」実験をすると楽しくなります。',
+      en: 'If repetition is hard, try a small experiment each time: change just one thing about how you do it.',
+    },
+  },
+  {
+    any: ['stress:change'],
+    kind: 'tip',
+    text: {
+      ja: '急な変更がつらいなら、「変わりそうなところ」と「変わらないところ」を早めに確認しておくと安心です。',
+      en: 'If sudden changes are hard, check early what is likely to change and what won’t.',
+    },
+  },
+];
 
 export const TOPICS: TopicDef[] = [
   // ================= 恋愛 =================
   {
     id: 'love_style',
     theme: 'love',
-    title: '自分の恋愛傾向',
-    ask: '私って、どんな恋をするタイプ？',
+    title: { ja: '自分の恋愛傾向', en: 'Your love style' },
+    ask: { ja: '私って、どんな恋をするタイプ？', en: 'What kind of lover am I?' },
     traits: ['love_pace', 'love_express', 'love_reassure', 'love_distance'],
     maxQuestions: 3,
-    intro: (ctx) => dm(ctx).love,
+    intro: { kind: 'dm', field: 'love' },
     related: ['pattern', 'fit', 'closer'],
   },
   {
     id: 'crush',
     theme: 'love',
-    title: '片思い',
-    ask: '片思い中。どう動けばいい？',
+    title: { ja: '片思い', en: 'Crush' },
+    ask: { ja: '片思い中。どう動けばいい？', en: 'I have a crush. What should I do?' },
     traits: ['love_express', 'love_pace', 'love_reassure'],
     maxQuestions: 3,
-    intro: (ctx) => `片思いは、あなたらしさがいちばん出やすい時期。${firstHypothesis(ctx, ['love_express', 'love_pace', 'love_reassure'])}今の状況を少しだけ教えてください。`,
-    extras: (ctx) => {
-      const p: ResultPoint[] = [];
-      if (has(ctx, 'crush:far')) p.push(tip('まだ遠い距離なら、「あいさつ＋ひと言」を続けるだけで印象はぐっと変わります。'));
-      if (has(ctx, 'approach:intro')) p.push(tip('共通の友達を通すなら、まずはグループで会う機会をつくるのが自然です。'));
-      if (has(ctx, 'crush:some')) p.push(tip('たまに話す関係なら、前に話した話題を覚えておいて「あれどうなった？」と聞くと、印象に残りやすくなります。'));
-      if (has(ctx, 'crush:close')) p.push(note('仲のいい関係は、恋に進むための大きな土台。「友達のままがいい」と決めつけなくて大丈夫。'));
-      if (has(ctx, 'signal:hidden') || has(ctx, 'signal:hiding')) p.push(tip('好意は「あなたと話すのが楽しい」くらいの軽いひと言から伝えてみては？'));
-      if (has(ctx, 'next:anxious')) p.push(note('相手の気持ちは、占いでは断定できません。次に会う約束ができるかどうかが、いちばん確かなサインです。'));
-      if (has(ctx, 'next:closer')) p.push(tip('次は「この前の続き」を口実に誘うと、自然に距離が縮まりやすいはず。'));
-      return p;
+    intro: {
+      kind: 'text',
+      text: { ja: '片思いは、あなたらしさがいちばん出やすい時期。', en: 'A crush is when your true self shows the most.' },
+      hyp: ['love_express', 'love_pace', 'love_reassure'],
+      after: { ja: '今の状況を少しだけ教えてください。', en: 'Tell me a little about where things stand.' },
     },
+    extras: [
+      {
+        any: ['crush:far'],
+        kind: 'tip',
+        text: {
+          ja: 'まだ遠い距離なら、「あいさつ＋ひと言」を続けるだけで印象はぐっと変わります。',
+          en: 'From afar, simply keeping up "a greeting plus one more line" can change their impression a lot.',
+        },
+      },
+      {
+        any: ['crush:some'],
+        kind: 'tip',
+        text: {
+          ja: 'たまに話す関係なら、前に話した話題を覚えておいて「あれどうなった？」と聞くと、印象に残りやすくなります。',
+          en: 'If you talk now and then, remember what you talked about and ask "how did that go?" — it sticks with people.',
+        },
+      },
+      {
+        any: ['approach:intro'],
+        kind: 'tip',
+        text: {
+          ja: '共通の友達を通すなら、まずはグループで会う機会をつくるのが自然です。',
+          en: 'If going through a mutual friend, starting with a group hangout feels natural.',
+        },
+      },
+      {
+        any: ['crush:close'],
+        kind: 'note',
+        text: {
+          ja: '仲のいい関係は、恋に進むための大きな土台。「友達のままがいい」と決めつけなくて大丈夫。',
+          en: 'A close friendship is a big foundation for romance. No need to assume "we should stay friends."',
+        },
+      },
+      {
+        any: ['signal:hidden', 'signal:hiding'],
+        kind: 'tip',
+        text: {
+          ja: '好意は「あなたと話すのが楽しい」くらいの軽いひと言から伝えてみては？',
+          en: 'Why not start with something light, like "I really enjoy talking with you"?',
+        },
+      },
+      {
+        any: ['next:anxious'],
+        kind: 'note',
+        text: {
+          ja: '相手の気持ちは、占いでは断定できません。次に会う約束ができるかどうかが、いちばん確かなサインです。',
+          en: 'Fortune-telling can’t determine how they feel. Whether you can make plans to meet again is the surest sign.',
+        },
+      },
+      {
+        any: ['next:closer'],
+        kind: 'tip',
+        text: {
+          ja: '次は「この前の続き」を口実に誘うと、自然に距離が縮まりやすいはず。',
+          en: 'Next time, invite them to "pick up where we left off" — it closes the distance naturally.',
+        },
+      },
+    ],
     related: ['closer', 'compat', 'love_style'],
   },
   {
     id: 'compat',
     theme: 'love',
-    title: '好きな人との相性',
-    ask: 'あの人との相性は？',
+    title: { ja: '好きな人との相性', en: 'Compatibility' },
+    ask: { ja: 'あの人との相性は？', en: 'Are we compatible?' },
     traits: ['love_distance', 'love_lead'],
     maxQuestions: 2,
     special: 'compat',
-    intro: () => '相手の生年月日がわかれば、二人の「日柱」から相性の傾向を計算します。わからなくても、あなたに合いやすい関係性を見ていけます。',
+    intro: {
+      kind: 'text',
+      text: {
+        ja: '相手の生年月日がわかれば、二人の「日柱」から相性の傾向を計算します。わからなくても、あなたに合いやすい関係性を見ていけます。',
+        en: 'If you know their birth date, we calculate your compatibility from your two "day pillars." Even without it, we can explore what kind of relationship suits you.',
+      },
+    },
     related: ['closer', 'fit', 'partner'],
   },
   {
     id: 'partner',
     theme: 'love',
-    title: '交際中の相手との関係',
-    ask: '今の恋人との関係、どうしたらいい？',
+    title: { ja: '交際中の相手との関係', en: 'Your current relationship' },
+    ask: { ja: '今の恋人との関係、どうしたらいい？', en: 'How can I improve things with my partner?' },
     traits: ['love_reassure', 'love_distance', 'rel_conflict', 'love_express'],
     maxQuestions: 3,
-    intro: (ctx) => `長く付き合うほど、ふたりの「ちょうどいい距離」が大切に。${firstHypothesis(ctx, ['love_distance', 'love_reassure'])}`,
-    extras: (ctx) => {
-      const p: ResultPoint[] = [];
-      if (has(ctx, 'rel:stable')) p.push(note('安定しているときこそ、小さな「ありがとう」が関係を長持ちさせます。'));
-      if (has(ctx, 'rel:gap')) p.push(tip('すれ違いが増えたら、解決よりもまず「最近どう？」と話す時間をつくるところから。'));
-      if (has(ctx, 'rel:future')) p.push(tip('将来の話は、結論を求めずに「どんな暮らしが好き？」から始めると話しやすいです。'));
-      if (has(ctx, 'hide')) p.push(note('気にしないふりが続くと、モヤモヤが大きくなりがち。小さいうちに伝えるのがコツです。'));
-      return p;
+    intro: {
+      kind: 'text',
+      text: { ja: '長く付き合うほど、ふたりの「ちょうどいい距離」が大切に。', en: 'The longer you’re together, the more your "just-right distance" matters.' },
+      hyp: ['love_distance', 'love_reassure'],
     },
+    extras: [
+      { any: ['rel:stable'], kind: 'note', text: { ja: '安定しているときこそ、小さな「ありがとう」が関係を長持ちさせます。', en: 'When things are stable, small "thank you"s keep a relationship going.' } },
+      { any: ['rel:gap'], kind: 'tip', text: { ja: 'すれ違いが増えたら、解決よりもまず「最近どう？」と話す時間をつくるところから。', en: 'When you’re missing each other, start with time to ask "how have you been?" before trying to solve anything.' } },
+      { any: ['rel:future'], kind: 'tip', text: { ja: '将来の話は、結論を求めずに「どんな暮らしが好き？」から始めると話しやすいです。', en: 'For future talks, skip the conclusions and start with "what kind of life do you like?"' } },
+      { any: ['hide'], kind: 'note', text: { ja: '気にしないふりが続くと、モヤモヤが大きくなりがち。小さいうちに伝えるのがコツです。', en: 'Pretending not to mind lets frustration grow. Say it while it’s still small.' } },
+    ],
     related: ['marriage', 'fit', 'pattern'],
   },
   {
     id: 'marriage',
     theme: 'love',
-    title: '結婚観',
-    ask: '私の結婚観って？',
+    title: { ja: '結婚観', en: 'Views on marriage' },
+    ask: { ja: '私の結婚観って？', en: 'What’s my view on marriage?' },
     traits: ['marriage_view', 'love_distance'],
     maxQuestions: 3,
-    intro: (ctx) => `結婚観は、人それぞれ。正解はありません。${firstHypothesis(ctx, ['marriage_view', 'love_distance'])}`,
-    extras: (ctx) => {
-      const p: ResultPoint[] = [];
-      if (has(ctx, 'm:want')) p.push(tip('「いつかしたい」なら、どんな毎日を送りたいかを言葉にしておくと、合う相手が見えやすくなります。'));
-      if (has(ctx, 'm:notnow')) p.push(note('今は考えていない、も立派な答え。今の自分を大切にする時期なのかもしれません。'));
-      if (has(ctx, 'm:free')) p.push(note('形にこだわらない関係は、二人でルールをつくれるのが魅力。言葉にして共有することが大切です。'));
-      p.push(note('占いは結婚の時期や成否を決めるものではありません。考えるきっかけとして使ってください。', 'chart'));
-      return p;
+    intro: {
+      kind: 'text',
+      text: { ja: '結婚観は、人それぞれ。正解はありません。', en: 'Everyone sees marriage differently. There’s no right answer.' },
+      hyp: ['marriage_view', 'love_distance'],
     },
+    extras: [
+      { any: ['m:want'], kind: 'tip', text: { ja: '「いつかしたい」なら、どんな毎日を送りたいかを言葉にしておくと、合う相手が見えやすくなります。', en: 'If you want to marry someday, put into words the daily life you want — it makes a good match easier to see.' } },
+      { any: ['m:notnow'], kind: 'note', text: { ja: '今は考えていない、も立派な答え。今の自分を大切にする時期なのかもしれません。', en: '"Not now" is a fine answer. It may be a time to take care of yourself.' } },
+      { any: ['m:free'], kind: 'note', text: { ja: '形にこだわらない関係は、二人でルールをつくれるのが魅力。言葉にして共有することが大切です。', en: 'A relationship without a set form lets you make your own rules. Putting them into words matters.' } },
+      { any: [], kind: 'note', source: 'chart', text: { ja: '占いは結婚の時期や成否を決めるものではありません。考えるきっかけとして使ってください。', en: 'Fortune-telling doesn’t decide when or whether you’ll marry. Use it as a prompt for reflection.' } },
+    ],
     related: ['fit', 'partner', 'year'],
   },
   {
     id: 'meet',
     theme: 'love',
-    title: '出会い',
-    ask: 'どんな場所で出会いやすい？',
+    title: { ja: '出会い', en: 'Meeting someone' },
+    ask: { ja: 'どんな場所で出会いやすい？', en: 'Where am I likely to meet someone?' },
     traits: ['love_pace', 'self_energy', 'rel_circle'],
     maxQuestions: 3,
-    intro: (ctx) => `出会いは「どこで」より「どんな自分でいられるか」が大事。${firstHypothesis(ctx, ['love_pace', 'self_energy', 'rel_circle'])}`,
-    extras: (ctx) => {
-      const p: ResultPoint[] = [];
-      if (has(ctx, 'meet:party')) p.push(tip('にぎやかな場が得意なら、イベントや友達の集まりに積極的に顔を出してみて。'));
-      if (has(ctx, 'meet:small')) p.push(tip('少人数が得意なら、信頼できる友達に「いい人いたら紹介して」と伝えておくのが近道かも。'));
-      if (has(ctx, 'meet:hobby')) p.push(tip('趣味や学びの場は、自然体の自分を見てもらえるのが強み。好きなことを続けるのが一番の出会い対策です。'));
-      if (has(ctx, 'meet:online')) p.push(tip('オンラインの出会いは、会う前のやりとりで「話しやすさ」を確かめるのがコツ。安全のため、最初は人の多い場所で会いましょう。'));
-      return p;
+    intro: {
+      kind: 'text',
+      text: { ja: '出会いは「どこで」より「どんな自分でいられるか」が大事。', en: 'For meeting people, "who you can be there" matters more than "where."' },
+      hyp: ['love_pace', 'self_energy', 'rel_circle'],
     },
+    extras: [
+      { any: ['meet:party'], kind: 'tip', text: { ja: 'にぎやかな場が得意なら、イベントや友達の集まりに積極的に顔を出してみて。', en: 'If lively places suit you, show up to events and friends’ gatherings.' } },
+      { any: ['meet:small'], kind: 'tip', text: { ja: '少人数が得意なら、信頼できる友達に「いい人いたら紹介して」と伝えておくのが近道かも。', en: 'If small groups suit you, telling a trusted friend "introduce me if you know someone" may be the shortcut.' } },
+      { any: ['meet:hobby'], kind: 'tip', text: { ja: '趣味や学びの場は、自然体の自分を見てもらえるのが強み。好きなことを続けるのが一番の出会い対策です。', en: 'Hobbies and classes let people see the natural you. Keeping up what you love is the best way to meet someone.' } },
+      { any: ['meet:online'], kind: 'tip', text: { ja: 'オンラインの出会いは、会う前のやりとりで「話しやすさ」を確かめるのがコツ。安全のため、最初は人の多い場所で会いましょう。', en: 'Online, check how easy they are to talk to before meeting. For safety, meet in a busy place the first time.' } },
+    ],
     related: ['love_style', 'crush', 'year'],
   },
   {
     id: 'reunion',
     theme: 'love',
-    title: '復縁',
-    ask: '元の恋人のことが忘れられない',
+    title: { ja: '復縁', en: 'Getting back together' },
+    ask: { ja: '元の恋人のことが忘れられない', en: 'I can’t forget my ex' },
     traits: ['love_reassure', 'love_distance'],
     maxQuestions: 3,
-    intro: () => '復縁できるかどうかは、占いでは断定できません。ここでは「あなたの気持ちの整理」に役立つヒントを一緒に探します。',
-    extras: (ctx) => {
-      const p: ResultPoint[] = [];
-      if (has(ctx, 're:fresh')) p.push(tip('別れて間もない時期は、気持ちが大きく揺れやすいもの。大きな決断は少し時間をおいてからでも遅くありません。'));
-      if (has(ctx, 're:long')) p.push(note('時間がたっても思い出すなら、それだけ大切な経験だったということ。今の自分が何を求めているかを見つめてみて。'));
-      if (has(ctx, 're:lonely')) p.push(tip('さびしさが大きいときは、まず友達や好きなことで心を満たしてから考えると、本当の気持ちが見えやすくなります。'));
-      if (has(ctx, 're:regret')) p.push(tip('後悔があるなら、「あのとき伝えたかったこと」を一度書き出してみると、気持ちが整理されやすいです。'));
-      if (has(ctx, 're:love')) p.push(note('「今も好き」という気持ちは大切に。そのうえで、別れた理由が今どう変わったかを考えてみて。'));
-      p.push(note('相手の気持ちや連絡の有無を、占いで決めつける必要はありません。', 'chart'));
-      return p;
+    intro: {
+      kind: 'text',
+      text: {
+        ja: '復縁できるかどうかは、占いでは断定できません。ここでは「あなたの気持ちの整理」に役立つヒントを一緒に探します。',
+        en: 'Fortune-telling can’t say whether you’ll get back together. Here, let’s find hints to help you sort out your feelings.',
+      },
     },
+    extras: [
+      { any: ['re:fresh'], kind: 'tip', text: { ja: '別れて間もない時期は、気持ちが大きく揺れやすいもの。大きな決断は少し時間をおいてからでも遅くありません。', en: 'Right after a breakup, feelings swing a lot. It’s not too late to make big decisions after some time.' } },
+      { any: ['re:long'], kind: 'note', text: { ja: '時間がたっても思い出すなら、それだけ大切な経験だったということ。今の自分が何を求めているかを見つめてみて。', en: 'If you still remember after all this time, it was an important experience. Look at what you want now.' } },
+      { any: ['re:lonely'], kind: 'tip', text: { ja: 'さびしさが大きいときは、まず友達や好きなことで心を満たしてから考えると、本当の気持ちが見えやすくなります。', en: 'When loneliness is big, fill your heart with friends and things you love first — your true feelings become clearer.' } },
+      { any: ['re:regret'], kind: 'tip', text: { ja: '後悔があるなら、「あのとき伝えたかったこと」を一度書き出してみると、気持ちが整理されやすいです。', en: 'If you have regrets, write down what you wanted to say back then — it helps sort out your feelings.' } },
+      { any: ['re:love'], kind: 'note', text: { ja: '「今も好き」という気持ちは大切に。そのうえで、別れた理由が今どう変わったかを考えてみて。', en: 'Treasure the feeling that you still love them. Then think about how the reasons you broke up have changed.' } },
+      { any: [], kind: 'note', source: 'chart', text: { ja: '相手の気持ちや連絡の有無を、占いで決めつける必要はありません。', en: 'There’s no need to let fortune-telling decide how they feel or whether they’ll contact you.' } },
+    ],
     related: ['pattern', 'love_style', 'energy'],
   },
   {
     id: 'closer',
     theme: 'love',
-    title: '距離の縮め方',
-    ask: '相手との距離を縮めるには？',
+    title: { ja: '距離の縮め方', en: 'Getting closer' },
+    ask: { ja: '相手との距離を縮めるには？', en: 'How can I get closer to them?' },
     traits: ['love_express', 'love_lead'],
     maxQuestions: 3,
-    intro: (ctx) => `距離の縮め方には、その人らしい「得意なやり方」があります。${firstHypothesis(ctx, ['love_express', 'love_lead'])}`,
-    extras: (ctx) => {
-      const p: ResultPoint[] = [];
-      if (has(ctx, 'talk:self')) p.push(tip('話すのが得意なら、最後に「あなたはどう？」と質問で返すと、会話のキャッチボールが続きます。'));
-      if (has(ctx, 'talk:listen')) p.push(tip('聞き上手は大きな武器。ときどき自分の話も混ぜると、相手もあなたを知りたくなります。'));
-      if (has(ctx, 'talk:nervous')) p.push(tip('緊張するなら、話す内容を1つだけ決めておくと安心。上手に話すより、楽しそうにしていることが伝わります。'));
-      if (has(ctx, 'talk:fun')) p.push(note('笑わせようとがんばれるのは、相手を大事に思っている証拠。ときには素の自分を見せるのも◎。'));
-      return p;
+    intro: {
+      kind: 'text',
+      text: { ja: '距離の縮め方には、その人らしい「得意なやり方」があります。', en: 'Everyone has their own best way to get closer to someone.' },
+      hyp: ['love_express', 'love_lead'],
     },
+    extras: [
+      { any: ['talk:self'], kind: 'tip', text: { ja: '話すのが得意なら、最後に「あなたはどう？」と質問で返すと、会話のキャッチボールが続きます。', en: 'If you’re a talker, end with "what about you?" to keep the conversation going both ways.' } },
+      { any: ['talk:listen'], kind: 'tip', text: { ja: '聞き上手は大きな武器。ときどき自分の話も混ぜると、相手もあなたを知りたくなります。', en: 'Being a good listener is a big strength. Mix in your own stories so they want to know you too.' } },
+      { any: ['talk:nervous'], kind: 'tip', text: { ja: '緊張するなら、話す内容を1つだけ決めておくと安心。上手に話すより、楽しそうにしていることが伝わります。', en: 'If you get nervous, prepare just one topic. Looking like you’re having fun matters more than talking well.' } },
+      { any: ['talk:fun'], kind: 'note', text: { ja: '笑わせようとがんばれるのは、相手を大事に思っている証拠。ときには素の自分を見せるのも◎。', en: 'Trying to make them laugh shows you care. Showing your unfiltered self sometimes is great too.' } },
+    ],
     related: ['crush', 'compat', 'fit'],
   },
   {
     id: 'pattern',
     theme: 'love',
-    title: '恋愛でくり返すパターン',
-    ask: 'いつも同じところでつまずく気がする',
+    title: { ja: '恋愛でくり返すパターン', en: 'Your repeating love patterns' },
+    ask: { ja: 'いつも同じところでつまずく気がする', en: 'I always seem to trip in the same place' },
     traits: ['love_reassure', 'love_pace', 'love_lead', 'love_express'],
     maxQuestions: 3,
     emphasis: 'caution',
-    intro: (ctx) => `くり返すパターンは「あなたの弱点」ではなく、「強みの裏側」であることが多いもの。${firstHypothesis(ctx, ['love_reassure', 'love_pace'])}`,
-    extras: (ctx) => {
-      const p: ResultPoint[] = [];
-      if (has(ctx, 'pt:over')) p.push(tip('夢中になりやすいなら、恋以外の「好きなこと」も同じくらい大切にしておくと、振り回されにくくなります。'));
-      if (has(ctx, 'pt:adapt')) p.push(tip('合わせすぎて疲れるなら、「今日は私が決めていい？」と1回だけ言ってみる練習を。'));
-      if (has(ctx, 'pt:fade')) p.push(note('冷めるのが早いのは、ときめきに敏感な証拠。「安心」にもときめけるか、試してみる価値ありです。'));
-      if (has(ctx, 'pt:stall')) p.push(tip('進展しないまま終わるなら、気持ちの3割くらいを、言葉で伝えてみることから。'));
-      return p;
+    intro: {
+      kind: 'text',
+      text: {
+        ja: 'くり返すパターンは「あなたの弱点」ではなく、「強みの裏側」であることが多いもの。',
+        en: 'Repeating patterns are often not your weakness, but the flip side of a strength.',
+      },
+      hyp: ['love_reassure', 'love_pace'],
     },
+    extras: [
+      { any: ['pt:over'], kind: 'tip', text: { ja: '夢中になりやすいなら、恋以外の「好きなこと」も同じくらい大切にしておくと、振り回されにくくなります。', en: 'If you get swept up easily, keep things you love outside romance just as important — you’ll be less thrown around.' } },
+      { any: ['pt:adapt'], kind: 'tip', text: { ja: '合わせすぎて疲れるなら、「今日は私が決めていい？」と1回だけ言ってみる練習を。', en: 'If adapting wears you out, practice saying "can I decide today?" just once.' } },
+      { any: ['pt:fade'], kind: 'note', text: { ja: '冷めるのが早いのは、ときめきに敏感な証拠。「安心」にもときめけるか、試してみる価値ありです。', en: 'Cooling off fast shows you’re sensitive to sparks. It’s worth seeing whether "security" can spark you too.' } },
+      { any: ['pt:stall'], kind: 'tip', text: { ja: '進展しないまま終わるなら、気持ちの3割くらいを、言葉で伝えてみることから。', en: 'If things end before they start, try putting about 30% of your feelings into words.' } },
+    ],
     related: ['love_style', 'fit', 'reunion'],
   },
   {
     id: 'fit',
     theme: 'love',
-    title: '自分に合う関係性',
-    ask: 'どんな関係が、私に合ってる？',
+    title: { ja: '自分に合う関係性', en: 'Relationships that suit you' },
+    ask: { ja: 'どんな関係が、私に合ってる？', en: 'What kind of relationship suits me?' },
     traits: ['love_distance', 'love_lead', 'marriage_view', 'love_pace'],
     maxQuestions: 3,
-    intro: (ctx) => `合う関係は、相手の条件より「心地いい距離感」で決まることが多いもの。${firstHypothesis(ctx, ['love_distance', 'love_lead'])}`,
+    intro: {
+      kind: 'text',
+      text: {
+        ja: '合う関係は、相手の条件より「心地いい距離感」で決まることが多いもの。',
+        en: 'A good fit is often decided by a comfortable distance more than by someone’s checklist.',
+      },
+      hyp: ['love_distance', 'love_lead'],
+    },
     related: ['compat', 'marriage', 'meet'],
   },
 
@@ -205,145 +337,174 @@ export const TOPICS: TopicDef[] = [
   {
     id: 'strengths',
     theme: 'work',
-    title: '自分の強み',
-    ask: '私の強みって、何だろう？',
+    title: { ja: '自分の強み', en: 'Your strengths' },
+    ask: { ja: '私の強みって、何だろう？', en: 'What are my strengths?' },
     traits: ['work_pace', 'work_drive', 'rel_role'],
     maxQuestions: 3,
-    intro: (ctx) => dm(ctx).work,
-    extras: (ctx) => {
-      const p: ResultPoint[] = [{ kind: 'strength', text: dm(ctx).strengths[0], source: 'chart' }];
-      if (has(ctx, 'wrole:accurate')) p.push({ kind: 'strength', text: '正確さで頼られるのは、見えにくいけれど大きな強み。', source: 'answer' });
-      if (has(ctx, 'wrole:mood')) p.push({ kind: 'strength', text: '場を明るくする力は、チームの生産性まで上げる立派なスキル。', source: 'answer' });
-      return p;
-    },
+    intro: { kind: 'dm', field: 'work' },
+    dmExtras: ['strength0'],
+    extras: [
+      { any: ['wrole:accurate'], kind: 'strength', text: { ja: '正確さで頼られるのは、見えにくいけれど大きな強み。', en: 'Being trusted for accuracy is a quiet but big strength.' } },
+      { any: ['wrole:mood'], kind: 'strength', text: { ja: '場を明るくする力は、チームの生産性まで上げる立派なスキル。', en: 'Brightening the room is a real skill that even lifts team productivity.' } },
+    ],
     related: ['backfire', 'style', 'career'],
   },
   {
     id: 'avoid',
     theme: 'work',
-    title: '苦手な環境',
-    ask: 'どんな環境だと、しんどくなる？',
+    title: { ja: '苦手な環境', en: 'Environments that drain you' },
+    ask: { ja: 'どんな環境だと、しんどくなる？', en: 'What environments wear me out?' },
     traits: ['work_structure', 'work_collab'],
     maxQuestions: 3,
     emphasis: 'caution',
-    intro: (ctx) => `苦手を知るのは、自分を守るための大事な情報。${firstHypothesis(ctx, ['work_structure', 'work_collab'])}`,
-    extras: stressExtras,
+    intro: {
+      kind: 'text',
+      text: { ja: '苦手を知るのは、自分を守るための大事な情報。', en: 'Knowing what drains you is important information for protecting yourself.' },
+      hyp: ['work_structure', 'work_collab'],
+    },
+    extras: STRESS_EXTRAS,
     related: ['stress', 'style', 'career'],
   },
   {
     id: 'style',
     theme: 'work',
-    title: '向いている働き方',
-    ask: '向いている働き方は？',
+    title: { ja: '向いている働き方', en: 'How you work best' },
+    ask: { ja: '向いている働き方は？', en: 'What way of working suits me?' },
     traits: ['work_structure', 'work_collab', 'work_pace'],
     maxQuestions: 3,
-    intro: (ctx) => `向いている働き方は、職種名よりも「どんな環境で力が出るか」で考えると見つけやすくなります。${firstHypothesis(ctx, ['work_structure', 'work_collab', 'work_pace'])}`,
+    intro: {
+      kind: 'text',
+      text: {
+        ja: '向いている働き方は、職種名よりも「どんな環境で力が出るか」で考えると見つけやすくなります。',
+        en: 'It’s easier to find your way of working by asking "where do I perform well?" rather than "which job title?"',
+      },
+      hyp: ['work_structure', 'work_collab', 'work_pace'],
+    },
     related: ['strengths', 'career', 'avoid'],
   },
   {
     id: 'people',
     theme: 'work',
-    title: '仕事での人間関係',
-    ask: '職場の人間関係、どう付き合う？',
+    title: { ja: '仕事での人間関係', en: 'Relationships at work' },
+    ask: { ja: '職場の人間関係、どう付き合う？', en: 'How should I handle people at work?' },
     traits: ['rel_role', 'work_collab', 'rel_conflict'],
     maxQuestions: 3,
-    intro: (ctx) => `仕事の人間関係は、役割の取り方で楽にも重くもなります。${firstHypothesis(ctx, ['rel_role', 'work_collab', 'rel_conflict'])}`,
+    intro: {
+      kind: 'text',
+      text: { ja: '仕事の人間関係は、役割の取り方で楽にも重くもなります。', en: 'Work relationships can feel light or heavy depending on the role you take.' },
+      hyp: ['rel_role', 'work_collab', 'rel_conflict'],
+    },
     related: ['conflict', 'stress', 'role'],
   },
   {
     id: 'career',
     theme: 'work',
-    title: 'キャリア・転職',
-    ask: 'このままでいい？キャリアの考え方',
+    title: { ja: 'キャリア・転職', en: 'Career & job change' },
+    ask: { ja: 'このままでいい？キャリアの考え方', en: 'Should I stay the course? Thinking about my career' },
     traits: ['work_drive', 'work_structure'],
     maxQuestions: 3,
-    intro: (ctx) => `キャリアは「正解を当てる」より「自分に合う条件を知る」ことが近道です。${firstHypothesis(ctx, ['work_drive', 'work_structure'])}`,
-    extras: (ctx) => {
-      const p: ResultPoint[] = [];
-      if (has(ctx, 'career:grow')) p.push(tip('今の場所で伸びたいなら、「任されたい仕事」を1つ上司や先輩に伝えてみるのが近道。'));
-      if (has(ctx, 'cc:want')) p.push(tip('やりたいことが別にあるなら、まず週末や副業で「小さく試す」と、合うかどうかが見えてきます。'));
-      if (has(ctx, 'cc:env')) p.push(note('環境が理由なら、次の場所選びでは「仕事内容」と同じくらい「どんな人と働くか」を確認しましょう。'));
-      if (has(ctx, 'cc:future')) p.push(tip('待遇や将来性が気になるなら、今の自分の市場価値を調べてみるだけでも判断材料になります。'));
-      if (has(ctx, 'cc:unsure') || has(ctx, 'career:explore')) p.push(tip('模索中なら、「楽しかった仕事」と「しんどかった仕事」を3つずつ書き出すと、条件が見えてきます。'));
-      p.push(note('転職するかどうかなど大きな決断は、占いだけで決めず、現実の情報と合わせて考えてください。', 'chart'));
-      return p;
+    intro: {
+      kind: 'text',
+      text: {
+        ja: 'キャリアは「正解を当てる」より「自分に合う条件を知る」ことが近道です。',
+        en: 'For your career, knowing the conditions that suit you beats trying to guess the "right answer."',
+      },
+      hyp: ['work_drive', 'work_structure'],
     },
+    extras: [
+      { any: ['career:grow'], kind: 'tip', text: { ja: '今の場所で伸びたいなら、「任されたい仕事」を1つ上司や先輩に伝えてみるのが近道。', en: 'If you want to grow where you are, tell your manager or a senior one task you’d like to own.' } },
+      { any: ['cc:want'], kind: 'tip', text: { ja: 'やりたいことが別にあるなら、まず週末や副業で「小さく試す」と、合うかどうかが見えてきます。', en: 'If there’s something else you want to do, try it small on weekends or as a side project to see if it fits.' } },
+      { any: ['cc:env'], kind: 'note', text: { ja: '環境が理由なら、次の場所選びでは「仕事内容」と同じくらい「どんな人と働くか」を確認しましょう。', en: 'If the environment is the reason, check who you’ll work with as carefully as what you’ll do.' } },
+      { any: ['cc:future'], kind: 'tip', text: { ja: '待遇や将来性が気になるなら、今の自分の市場価値を調べてみるだけでも判断材料になります。', en: 'If pay or prospects worry you, just researching your market value gives you something to decide with.' } },
+      { any: ['cc:unsure', 'career:explore'], kind: 'tip', text: { ja: '模索中なら、「楽しかった仕事」と「しんどかった仕事」を3つずつ書き出すと、条件が見えてきます。', en: 'If you’re exploring, list three tasks you enjoyed and three that wore you out — your conditions will appear.' } },
+      { any: [], kind: 'note', source: 'chart', text: { ja: '転職するかどうかなど大きな決断は、占いだけで決めず、現実の情報と合わせて考えてください。', en: 'For big decisions like changing jobs, don’t rely on fortune-telling alone — combine it with real information.' } },
+    ],
     related: ['challenge', 'next', 'style'],
   },
   {
     id: 'challenge',
     theme: 'work',
-    title: '挑戦・独立',
-    ask: '新しい挑戦、してもいい？',
+    title: { ja: '挑戦・独立', en: 'Challenges & going independent' },
+    ask: { ja: '新しい挑戦、してもいい？', en: 'Should I take on a new challenge?' },
     traits: ['work_drive', 'work_pace'],
     maxQuestions: 3,
-    intro: (ctx) => `挑戦のしかたにも向き不向きがあります。${firstHypothesis(ctx, ['work_drive', 'work_pace'])}`,
-    extras: (ctx) => {
-      const p: ResultPoint[] = [];
-      if (has(ctx, 'brake:eyes')) p.push(tip('周りの目が気になるなら、最初は身近な1人にだけ話して始めると、心理的なハードルが下がります。'));
-      if (has(ctx, 'brake:money')) p.push(tip('お金の不安があるなら、「生活費の何か月分があれば安心か」を数字にしておくと、挑戦の計画が立てやすくなります。'));
-      if (has(ctx, 'brake:start')) p.push(tip('何から始めればいいかわからないときは、「今週15分でできること」に分解してみて。'));
-      if (has(ctx, 'brake:none')) p.push(note('ブレーキが少ないのは強み。そのぶん、「やめる基準」を先に決めておくと安心です。'));
-      return p;
+    intro: {
+      kind: 'text',
+      text: { ja: '挑戦のしかたにも向き不向きがあります。', en: 'There are styles of taking on challenges that suit you better than others.' },
+      hyp: ['work_drive', 'work_pace'],
     },
+    extras: [
+      { any: ['brake:eyes'], kind: 'tip', text: { ja: '周りの目が気になるなら、最初は身近な1人にだけ話して始めると、心理的なハードルが下がります。', en: 'If others’ eyes worry you, start by telling just one person close to you — it lowers the mental hurdle.' } },
+      { any: ['brake:money'], kind: 'tip', text: { ja: 'お金の不安があるなら、「生活費の何か月分があれば安心か」を数字にしておくと、挑戦の計画が立てやすくなります。', en: 'If money worries you, decide how many months of living costs would make you feel safe — planning gets easier.' } },
+      { any: ['brake:start'], kind: 'tip', text: { ja: '何から始めればいいかわからないときは、「今週15分でできること」に分解してみて。', en: 'If you don’t know where to start, break it down into "something I can do in 15 minutes this week."' } },
+      { any: ['brake:none'], kind: 'note', text: { ja: 'ブレーキが少ないのは強み。そのぶん、「やめる基準」を先に決めておくと安心です。', en: 'Having few brakes is a strength. Decide in advance when you would stop, just to be safe.' } },
+    ],
     related: ['next', 'decide', 'year'],
   },
   {
     id: 'decide',
     theme: 'work',
-    title: '意思決定の傾向',
-    ask: '私の決め方のクセは？',
+    title: { ja: '意思決定の傾向', en: 'How you make decisions' },
+    ask: { ja: '私の決め方のクセは？', en: 'What are my decision-making habits?' },
     traits: ['work_pace', 'self_decide'],
     maxQuestions: 2,
-    intro: (ctx) => `決め方のクセを知っておくと、大事な場面で迷いにくくなります。${firstHypothesis(ctx, ['work_pace', 'self_decide'])}`,
-    extras: (ctx) => {
-      const p: ResultPoint[] = [];
-      if (has(ctx, 'dec:consult')) p.push(tip('相談するときは「どうしたらいい？」より「AとB、どっちが私らしい？」と聞くと、自分で決めた感覚が残ります。'));
-      if (has(ctx, 'dec:hesitate')) p.push(tip('迷いが長引くときは、「決める期限」を先に決めておくのがおすすめ。'));
-      return p;
+    intro: {
+      kind: 'text',
+      text: { ja: '決め方のクセを知っておくと、大事な場面で迷いにくくなります。', en: 'Knowing your decision habits makes big moments less confusing.' },
+      hyp: ['work_pace', 'self_decide'],
     },
+    extras: [
+      { any: ['dec:consult'], kind: 'tip', text: { ja: '相談するときは「どうしたらいい？」より「AとB、どっちが私らしい？」と聞くと、自分で決めた感覚が残ります。', en: 'When asking for advice, try "which of A or B feels more like me?" instead of "what should I do?" — you’ll still feel it was your choice.' } },
+      { any: ['dec:hesitate'], kind: 'tip', text: { ja: '迷いが長引くときは、「決める期限」を先に決めておくのがおすすめ。', en: 'If you keep wavering, set a deadline for deciding first.' } },
+    ],
     related: ['backfire', 'challenge', 'decide_self'],
   },
   {
     id: 'stress',
     theme: 'work',
-    title: 'ストレスを感じやすい状況',
-    ask: '何に疲れやすい？',
+    title: { ja: 'ストレスを感じやすい状況', en: 'What stresses you' },
+    ask: { ja: '何に疲れやすい？', en: 'What tires me out?' },
     traits: ['work_collab', 'work_structure'],
     maxQuestions: 2,
     emphasis: 'caution',
-    intro: (ctx) => `ストレスのもとがわかると、対策が立てやすくなります。${firstHypothesis(ctx, ['work_collab', 'work_structure'])}`,
-    extras: stressExtras,
+    intro: {
+      kind: 'text',
+      text: { ja: 'ストレスのもとがわかると、対策が立てやすくなります。', en: 'Once you know what causes stress, it’s easier to prepare for it.' },
+      hyp: ['work_collab', 'work_structure'],
+    },
+    extras: STRESS_EXTRAS,
     related: ['avoid', 'energy', 'people'],
   },
   {
     id: 'backfire',
     theme: 'work',
-    title: '強みが裏目に出る条件',
-    ask: '強みが空回りするのはどんなとき？',
+    title: { ja: '強みが裏目に出る条件', en: 'When strengths backfire' },
+    ask: { ja: '強みが空回りするのはどんなとき？', en: 'When do my strengths backfire?' },
     traits: ['work_pace', 'rel_role', 'self_decide'],
     maxQuestions: 3,
     emphasis: 'caution',
-    intro: (ctx) => `どんな強みにも、裏目に出やすい条件があります。あなたの命式から読める強みのひとつは「${dm(ctx).strengths[0]}」。その裏側を見ていきましょう。`,
-    extras: (ctx) => [{ kind: 'caution', text: dm(ctx).cautions[0], source: 'chart' }],
+    intro: { kind: 'backfire' },
+    dmExtras: ['caution0'],
     related: ['strengths', 'decide', 'people'],
   },
   {
     id: 'next',
     theme: 'work',
-    title: '次の一手',
-    ask: '次に何をすればいい？',
+    title: { ja: '次の一手', en: 'Your next move' },
+    ask: { ja: '次に何をすればいい？', en: 'What should I do next?' },
     traits: ['work_drive', 'self_decide'],
     maxQuestions: 3,
     emphasis: 'tip',
-    intro: (ctx) => `次の一手は、大きな決断より「小さく試せること」から。${firstHypothesis(ctx, ['work_drive', 'self_decide'])}`,
-    extras: (ctx) => {
-      const p: ResultPoint[] = [];
-      if (has(ctx, 'career:grow')) p.push(tip('今週、今の仕事で「ひとつだけ工夫できること」を決めてみて。'));
-      if (has(ctx, 'career:change') || has(ctx, 'career:indie')) p.push(tip('興味のある分野の人に、1人だけ話を聞いてみるのがおすすめの一手。'));
-      if (has(ctx, 'career:explore')) p.push(tip('気になることを3つ書き出して、いちばん手軽なものを今月中に試してみて。'));
-      return p;
+    intro: {
+      kind: 'text',
+      text: { ja: '次の一手は、大きな決断より「小さく試せること」から。', en: 'Your next move should start with something small you can try, not a huge decision.' },
+      hyp: ['work_drive', 'self_decide'],
     },
+    extras: [
+      { any: ['career:grow'], kind: 'tip', text: { ja: '今週、今の仕事で「ひとつだけ工夫できること」を決めてみて。', en: 'This week, pick one small improvement you can make in your current work.' } },
+      { any: ['career:change', 'career:indie'], kind: 'tip', text: { ja: '興味のある分野の人に、1人だけ話を聞いてみるのがおすすめの一手。', en: 'A good next move: talk to just one person in a field you’re curious about.' } },
+      { any: ['career:explore'], kind: 'tip', text: { ja: '気になることを3つ書き出して、いちばん手軽なものを今月中に試してみて。', en: 'Write down three things you’re curious about and try the easiest one this month.' } },
+    ],
     related: ['challenge', 'career', 'year'],
   },
 
@@ -351,63 +512,70 @@ export const TOPICS: TopicDef[] = [
   {
     id: 'friends',
     theme: 'relations',
-    title: '友達との関係',
-    ask: '友達との付き合い方、これでいい？',
+    title: { ja: '友達との関係', en: 'Friendships' },
+    ask: { ja: '友達との付き合い方、これでいい？', en: 'Am I doing friendships right?' },
     traits: ['rel_circle', 'rel_role', 'rel_conflict'],
     maxQuestions: 3,
-    intro: (ctx) => dm(ctx).relations,
-    extras: (ctx) => {
-      const p: ResultPoint[] = [];
-      if (has(ctx, 'fr:closer')) p.push(tip('仲良くなりたい人には、「この前の話の続き」をきっかけに声をかけると自然です。'));
-      if (has(ctx, 'fr:tired')) p.push(tip('気をつかって疲れるときは、会う頻度を少し減らすだけでも楽になります。距離をとるのは悪いことではありません。'));
-      if (has(ctx, 'fr:new')) p.push(tip('新しい友達は、「好きなこと」のつながりから生まれやすいもの。趣味の場に足を運んでみて。'));
-      return p;
-    },
+    intro: { kind: 'dm', field: 'relations' },
+    extras: [
+      { any: ['fr:closer'], kind: 'tip', text: { ja: '仲良くなりたい人には、「この前の話の続き」をきっかけに声をかけると自然です。', en: 'With someone you want to be closer to, picking up a previous conversation is a natural way in.' } },
+      { any: ['fr:tired'], kind: 'tip', text: { ja: '気をつかって疲れるときは、会う頻度を少し減らすだけでも楽になります。距離をとるのは悪いことではありません。', en: 'If tiptoeing tires you, simply seeing people a bit less helps. Taking distance isn’t a bad thing.' } },
+      { any: ['fr:new'], kind: 'tip', text: { ja: '新しい友達は、「好きなこと」のつながりから生まれやすいもの。趣味の場に足を運んでみて。', en: 'New friends often come from shared interests. Try going to hobby spaces.' } },
+    ],
     related: ['role', 'conflict', 'energy'],
   },
   {
     id: 'family',
     theme: 'relations',
-    title: '家族との関係',
-    ask: '家族との距離感が気になる',
+    title: { ja: '家族との関係', en: 'Family' },
+    ask: { ja: '家族との距離感が気になる', en: 'I’m unsure about distance with my family' },
     traits: ['rel_conflict'],
     maxQuestions: 2,
-    intro: () => '家族との関係は、近いからこそ難しいこともあります。ここでは、あなたが楽になるためのヒントを探します。',
-    extras: (ctx) => {
-      const p: ResultPoint[] = [];
-      if (has(ctx, 'fam:close')) p.push(note('何でも話せる家族は、大きな安心の土台。その安心感を、ほかの人間関係にも活かせそうです。'));
-      if (has(ctx, 'fam:moderate')) p.push(note('ほどよい距離は、お互いを尊重できている証拠かもしれません。'));
-      if (has(ctx, 'fam:careful')) p.push(tip('気をつかう相手には、「話す内容」より「話す時間」を短くするのも一つの方法です。'));
-      if (has(ctx, 'fam:distance') || has(ctx, 'fam:careful'))
-        p.push(note('つらさが続くときは、ひとりで抱えずに、信頼できる人や学校・地域の相談窓口に話してみてください。', 'chart'));
-      return p;
+    intro: {
+      kind: 'text',
+      text: {
+        ja: '家族との関係は、近いからこそ難しいこともあります。ここでは、あなたが楽になるためのヒントを探します。',
+        en: 'Family can be hard precisely because they’re close. Here, let’s look for hints to make things easier for you.',
+      },
     },
+    extras: [
+      { any: ['fam:close'], kind: 'note', text: { ja: '何でも話せる家族は、大きな安心の土台。その安心感を、ほかの人間関係にも活かせそうです。', en: 'A family you can talk to about anything is a big foundation. You can bring that security into other relationships.' } },
+      { any: ['fam:moderate'], kind: 'note', text: { ja: 'ほどよい距離は、お互いを尊重できている証拠かもしれません。', en: 'A comfortable distance may be a sign you respect each other.' } },
+      { any: ['fam:careful'], kind: 'tip', text: { ja: '気をつかう相手には、「話す内容」より「話す時間」を短くするのも一つの方法です。', en: 'With people you’re careful around, keeping conversations shorter can help more than changing what you say.' } },
+      { any: ['fam:distance', 'fam:careful'], kind: 'note', source: 'chart', text: { ja: 'つらさが続くときは、ひとりで抱えずに、信頼できる人や学校・地域の相談窓口に話してみてください。', en: 'If it keeps being hard, don’t carry it alone — talk to someone you trust or a school or local support service.' } },
+    ],
     related: ['conflict', 'energy', 'true_self'],
   },
   {
     id: 'role',
     theme: 'relations',
-    title: 'グループでの役割',
-    ask: 'グループで、どんな役まわり？',
+    title: { ja: 'グループでの役割', en: 'Your role in groups' },
+    ask: { ja: 'グループで、どんな役まわり？', en: 'What role do I play in groups?' },
     traits: ['rel_role', 'rel_circle'],
     maxQuestions: 2,
-    intro: (ctx) => `グループの中の役割には、その人らしさが出ます。${firstHypothesis(ctx, ['rel_role', 'rel_circle'])}`,
+    intro: {
+      kind: 'text',
+      text: { ja: 'グループの中の役割には、その人らしさが出ます。', en: 'Your role in a group reveals a lot about you.' },
+      hyp: ['rel_role', 'rel_circle'],
+    },
     related: ['friends', 'people', 'conflict'],
   },
   {
     id: 'conflict',
     theme: 'relations',
-    title: 'すれ違ったとき',
-    ask: 'すれ違ったとき、どうすればいい？',
+    title: { ja: 'すれ違ったとき', en: 'When you clash' },
+    ask: { ja: 'すれ違ったとき、どうすればいい？', en: 'What should I do when we clash?' },
     traits: ['rel_conflict', 'rel_role'],
     maxQuestions: 2,
-    intro: (ctx) => `すれ違いの解き方は、人によって「得意なタイミング」が違います。${firstHypothesis(ctx, ['rel_conflict'])}`,
-    extras: (ctx) => {
-      const p: ResultPoint[] = [];
-      if (has(ctx, 'hide')) p.push(tip('飲みこみやすいなら、その日のうちにメモに書くだけでも気持ちが整理されます。'));
-      if (has(ctx, 'distance')) p.push(note('距離をおくのは、関係を守るための選択でもあります。戻るタイミングは自分で決めて大丈夫。'));
-      return p;
+    intro: {
+      kind: 'text',
+      text: { ja: 'すれ違いの解き方は、人によって「得意なタイミング」が違います。', en: 'Everyone has a different best timing for resolving friction.' },
+      hyp: ['rel_conflict'],
     },
+    extras: [
+      { any: ['hide'], kind: 'tip', text: { ja: '飲みこみやすいなら、その日のうちにメモに書くだけでも気持ちが整理されます。', en: 'If you tend to swallow things, just writing them down that day helps sort your feelings.' } },
+      { any: ['distance'], kind: 'note', text: { ja: '距離をおくのは、関係を守るための選択でもあります。戻るタイミングは自分で決めて大丈夫。', en: 'Keeping distance can be a way to protect the relationship. You can decide when to come back.' } },
+    ],
     related: ['friends', 'partner', 'people'],
   },
 
@@ -415,40 +583,46 @@ export const TOPICS: TopicDef[] = [
   {
     id: 'true_self',
     theme: 'self',
-    title: '本当の自分',
-    ask: '人から見た私と、本当の私',
+    title: { ja: '本当の自分', en: 'Your true self' },
+    ask: { ja: '人から見た私と、本当の私', en: 'How others see me vs. the real me' },
     traits: ['self_energy', 'self_decide'],
     maxQuestions: 3,
-    intro: (ctx) => `${dm(ctx).essence} ${dm(ctx).self}`,
-    extras: (ctx) => {
-      const p: ResultPoint[] = [];
-      if (has(ctx, 'gapk:sensitive')) p.push(note('明るさと繊細さ、どちらも本当のあなた。繊細な部分を見せられる人が1人いると、ぐっと楽になります。'));
-      if (has(ctx, 'gapk:soft')) p.push(tip('しっかり者ほど、甘える練習が必要かも。「ちょっと手伝って」から始めてみて。'));
-      if (has(ctx, 'gapk:passion')) p.push(note('静かな熱さは、ここぞという場面で大きな力になります。熱くなれるものを大切に。'));
-      if (has(ctx, 'gapk:warm')) p.push(tip('情の厚さは、言葉にするともっと伝わります。「心配してたよ」のひと言を惜しまずに。'));
-      if (has(ctx, 'gap:none')) p.push(note('印象と本当の自分が近いのは、自然体でいられている証拠です。'));
-      return p;
-    },
+    intro: { kind: 'dm', field: 'essenceSelf' },
+    extras: [
+      { any: ['gapk:sensitive'], kind: 'note', text: { ja: '明るさと繊細さ、どちらも本当のあなた。繊細な部分を見せられる人が1人いると、ぐっと楽になります。', en: 'Both your brightness and sensitivity are the real you. Having one person you can show your sensitive side to makes life much easier.' } },
+      { any: ['gapk:soft'], kind: 'tip', text: { ja: 'しっかり者ほど、甘える練習が必要かも。「ちょっと手伝って」から始めてみて。', en: 'Reliable people may need to practice leaning on others. Start with "could you help me a bit?"' } },
+      { any: ['gapk:passion'], kind: 'note', text: { ja: '静かな熱さは、ここぞという場面で大きな力になります。熱くなれるものを大切に。', en: 'Quiet passion becomes great power when it counts. Treasure what fires you up.' } },
+      { any: ['gapk:warm'], kind: 'tip', text: { ja: '情の厚さは、言葉にするともっと伝わります。「心配してたよ」のひと言を惜しまずに。', en: 'Your warmth comes through more in words. Don’t hold back a simple "I was worried about you."' } },
+      { any: ['gap:none'], kind: 'note', text: { ja: '印象と本当の自分が近いのは、自然体でいられている証拠です。', en: 'When your image and true self are close, it means you’re able to be natural.' } },
+    ],
     related: ['energy', 'decide_self', 'love_style'],
   },
   {
     id: 'energy',
     theme: 'self',
-    title: '元気の回復法',
-    ask: '疲れたとき、どう回復する？',
+    title: { ja: '元気の回復法', en: 'How you recover' },
+    ask: { ja: '疲れたとき、どう回復する？', en: 'How do I recover when I’m tired?' },
     traits: ['self_energy', 'rel_circle'],
     maxQuestions: 2,
-    intro: (ctx) => `元気の回復法は、人によって正反対のことも。${firstHypothesis(ctx, ['self_energy', 'rel_circle'])}`,
+    intro: {
+      kind: 'text',
+      text: { ja: '元気の回復法は、人によって正反対のことも。', en: 'How people recover can be complete opposites.' },
+      hyp: ['self_energy', 'rel_circle'],
+    },
     related: ['true_self', 'stress', 'balance'],
   },
   {
     id: 'decide_self',
     theme: 'self',
-    title: '決め方のクセ',
-    ask: '迷ったとき、何を頼りにしてる？',
+    title: { ja: '決め方のクセ', en: 'How you choose' },
+    ask: { ja: '迷ったとき、何を頼りにしてる？', en: 'What do I rely on when I’m torn?' },
     traits: ['self_decide'],
     maxQuestions: 2,
-    intro: (ctx) => `決め方にも、その人らしさがあります。${firstHypothesis(ctx, ['self_decide'])}`,
+    intro: {
+      kind: 'text',
+      text: { ja: '決め方にも、その人らしさがあります。', en: 'The way you decide says a lot about you.' },
+      hyp: ['self_decide'],
+    },
     related: ['decide', 'true_self', 'direction'],
   },
 
@@ -456,61 +630,53 @@ export const TOPICS: TopicDef[] = [
   {
     id: 'year',
     theme: 'life',
-    title: '今年と来年の流れ',
-    ask: 'これからの運勢は？',
+    title: { ja: '今年と来年の流れ', en: 'This year and next' },
+    ask: { ja: 'これからの運勢は？', en: 'What’s my fortune ahead?' },
     traits: ['life_mode'],
     maxQuestions: 1,
     special: 'yearly',
-    intro: () => 'その年の干支と、あなたの日干との関係から「その年のテーマ」を読みます。良い・悪いではなく、流れのイメージとして楽しんでください。',
+    intro: {
+      kind: 'text',
+      text: {
+        ja: 'その年の干支と、あなたの日干との関係から「その年のテーマ」を読みます。良い・悪いではなく、流れのイメージとして楽しんでください。',
+        en: 'We read each year’s theme from how that year’s sign relates to your day stem. It’s not good or bad — enjoy it as an image of the flow.',
+      },
+    },
     related: ['direction', 'next', 'balance'],
   },
   {
     id: 'direction',
     theme: 'life',
-    title: 'これからの方向性',
-    ask: 'これから、どっちに進めばいい？',
+    title: { ja: 'これからの方向性', en: 'Where you’re heading' },
+    ask: { ja: 'これから、どっちに進めばいい？', en: 'Which way should I go from here?' },
     traits: ['life_mode', 'work_drive', 'self_decide'],
     maxQuestions: 3,
     emphasis: 'tip',
-    intro: (ctx) => `方向性は、一度決めたら変えられないものではありません。${firstHypothesis(ctx, ['life_mode', 'self_decide'])}`,
-    extras: (ctx) => {
-      const p: ResultPoint[] = [];
-      if (has(ctx, 'life:rest')) p.push(note('休みたいと感じているなら、それ自体が大事なサイン。休むことも、前に進むための準備です。'));
-      if (has(ctx, 'focus:love')) p.push(tip('今は恋愛やパートナーとの関係に目を向ける時期。「恋愛・結婚・相性」のテーマもめくってみて。'));
-      if (has(ctx, 'focus:work')) p.push(tip('今は仕事や学びに力を入れたい時期。「仕事・才能・キャリア」のテーマで強みを確認してみて。'));
-      if (has(ctx, 'focus:relations')) p.push(tip('今は人とのつながりを大切にしたい時期。「人間関係」のテーマもおすすめです。'));
-      if (has(ctx, 'focus:self')) p.push(tip('今は自分の心と体を大切にしたい時期。「本当の自分」のテーマで、充電の仕方を見てみて。'));
-      return p;
+    intro: {
+      kind: 'text',
+      text: { ja: '方向性は、一度決めたら変えられないものではありません。', en: 'A direction isn’t something you can never change once chosen.' },
+      hyp: ['life_mode', 'self_decide'],
     },
+    extras: [
+      { any: ['life:rest'], kind: 'note', text: { ja: '休みたいと感じているなら、それ自体が大事なサイン。休むことも、前に進むための準備です。', en: 'Wanting rest is an important sign. Resting is preparation for moving forward.' } },
+      { any: ['focus:love'], kind: 'tip', text: { ja: '今は恋愛やパートナーとの関係に目を向ける時期。「恋愛・結婚・相性」のテーマもめくってみて。', en: 'Now is a time to focus on love and partnership. Try the "Love, Marriage & Compatibility" theme too.' } },
+      { any: ['focus:work'], kind: 'tip', text: { ja: '今は仕事や学びに力を入れたい時期。「仕事・才能・キャリア」のテーマで強みを確認してみて。', en: 'Now is a time to put energy into work and learning. Check your strengths in "Work, Talent & Career."' } },
+      { any: ['focus:relations'], kind: 'tip', text: { ja: '今は人とのつながりを大切にしたい時期。「人間関係」のテーマもおすすめです。', en: 'Now is a time to value connections with people. The "Relationships" theme is a good next step.' } },
+      { any: ['focus:self'], kind: 'tip', text: { ja: '今は自分の心と体を大切にしたい時期。「本当の自分」のテーマで、充電の仕方を見てみて。', en: 'Now is a time to care for your mind and body. See how you recharge in the "True self" theme.' } },
+    ],
     related: ['year', 'next', 'true_self'],
   },
   {
     id: 'balance',
     theme: 'life',
-    title: '人生のバランス',
-    ask: '仕事、恋愛、自分。バランスのとり方は？',
+    title: { ja: '人生のバランス', en: 'Life balance' },
+    ask: { ja: '仕事、恋愛、自分。バランスのとり方は？', en: 'Work, love, me — how do I balance it all?' },
     traits: ['life_mode', 'self_energy'],
     maxQuestions: 3,
-    intro: (ctx) => {
-      const counts = ctx.chart.elementCounts;
-      const spread = Math.max(...counts) - Math.min(...counts);
-      return spread >= 3
-        ? 'あなたの命式は、五行の偏りがはっきりしたタイプ。得意なことに集中しやすい反面、バランスを意識すると楽になる場面もありそうです。'
-        : 'あなたの命式は、五行が比較的まんべんなく入ったタイプ。いろいろなことをバランスよくこなせる素質がありそうです。';
-    },
+    intro: { kind: 'balance' },
     related: ['energy', 'direction', 'year'],
   },
 ];
-
-function stressExtras(ctx: DiagnosisContext): ResultPoint[] {
-  const p: ResultPoint[] = [];
-  if (has(ctx, 'stress:micro')) p.push(tip('細かい管理がつらいなら、先に「進め方の提案」を出してしまうと、任せてもらいやすくなります。'));
-  if (has(ctx, 'stress:vague')) p.push(tip('ゴールがあいまいなときは、「完成したらどうなっていればOK？」を最初に確認しましょう。'));
-  if (has(ctx, 'stress:people')) p.push(tip('人への気づかいで疲れるなら、ひとりで集中できる時間をカレンダーに先に確保しておくのがおすすめ。'));
-  if (has(ctx, 'stress:routine')) p.push(tip('くり返しがつらいなら、毎回ひとつだけ「やり方を変えてみる」実験をすると楽しくなります。'));
-  if (has(ctx, 'stress:change')) p.push(tip('急な変更がつらいなら、「変わりそうなところ」と「変わらないところ」を早めに確認しておくと安心です。'));
-  return p;
-}
 
 export const TOPIC_BY_ID = Object.fromEntries(TOPICS.map((t) => [t.id, t])) as Record<string, TopicDef>;
 

@@ -30,6 +30,7 @@ export function loadState(storage: Storage | null = safeStorage()): LoadResult {
     if (!isObject(data) || data.version !== 1) throw new Error('version');
     const merged = { ...fresh, ...data } as AppState;
     if (!STYLE_IDS.includes(merged.style)) merged.style = fresh.style;
+    if (merged.lang !== 'ja' && merged.lang !== 'en') merged.lang = fresh.lang;
     if (!isObject(merged.answers)) merged.answers = {};
     if (!Array.isArray(merged.selectedThemes)) merged.selectedThemes = [];
     if (!Array.isArray(merged.completedTopics)) merged.completedTopics = [];

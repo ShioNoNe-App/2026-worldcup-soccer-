@@ -4,6 +4,8 @@ import type { ChartAnalysis } from '../bazi/analysis';
 import { QUESTION_BY_ID, QUESTIONS } from '../../content/questions';
 import { TOPIC_BY_ID } from '../../content/topics';
 import { TRAIT_BY_ID, TRAIT_IDS } from '../../content/traits';
+import { localizeQuestion, traitText } from '../../content/localize';
+import type { Lang } from '../../i18n/lang';
 import { priorsFromChart } from './priors';
 import type {
   Answers,
@@ -32,6 +34,7 @@ export function checkQuestionFor(trait: TraitId, prior: number, topics: string[]
     text: `占いでは「${pole.keyword}」の傾向が出ています。心当たりはありますか？`,
     sub: pole.summary,
     targets: [trait],
+    checkPole: sign > 0 ? 'pos' : 'neg',
     options: [
       { id: 'yes2', label: 'すごくある！', effects: { [trait]: 0.9 * sign }, reaction: 'やっぱり！' },
       { id: 'yes1', label: 'ちょっとある', effects: { [trait]: 0.5 * sign }, reaction: 'ふむふむ、少しね。' },
@@ -221,14 +224,20 @@ export function poleOf(value: number): 'pos' | 'neg' | 'mid' {
   return 'mid';
 }
 
-export function keywordOf(t: TraitState): string {
-  const def = TRAIT_BY_ID[t.id];
+export function keywordOf(t: TraitState, lang: Lang = 'ja'): string {
+  const def = traitText(t.id, lang);
   const pole = poleOf(t.value);
   return pole === 'mid' ? def.mid.keyword : def[pole].keyword;
 }
 
-export function feedbackFor(before: DiagnosisContext, after: DiagnosisContext, q: QuestionDef, optionId: string): AnswerFeedback {
-  const opt = findOption(q, optionId);
+export function feedbackFor(
+  before: DiagnosisContext,
+  after: DiagnosisContext,
+  q: QuestionDef,
+  optionId: string,
+  lang: Lang = 'ja',
+): AnswerFeedback {
+  const opt = findOption(localizeQuestion(q, lang), optionId);
   const changed = TRAIT_IDS.filter((id) => {
     const a = before.traits[id];
     const b = after.traits[id];
@@ -237,7 +246,7 @@ export function feedbackFor(before: DiagnosisContext, after: DiagnosisContext, q
   let keyword = opt?.keyword ?? null;
   if (!keyword) {
     const target = changed.find((id) => after.traits[id].self !== null);
-    if (target) keyword = keywordOf(after.traits[target]);
+    if (target) keyword = keywordOf(after.traits[target], lang);
   }
   return { reaction: opt?.reaction ?? null, keyword, changedTraits: changed };
 }

@@ -7,10 +7,10 @@ import type { StyleId } from '../state/types';
 
 export type Mood = 'normal' | 'happy' | 'think' | 'surprise';
 
-export const CHARACTER_NAMES: Record<StyleId, string> = {
-  pop: 'ぽむ',
-  chic: 'しおり',
-  game: 'コロ',
+export const CHARACTER_NAMES: Record<StyleId, { ja: string; en: string }> = {
+  pop: { ja: 'ぽむ', en: 'Pomu' },
+  chic: { ja: 'しおり', en: 'Shiori' },
+  game: { ja: 'コロ', en: 'Koro' },
 };
 
 interface Props {
@@ -21,9 +21,10 @@ interface Props {
   /** 値が変わるたびに、うなずきアニメーションを再生する */
   reactKey?: number | string;
   className?: string;
+  lang?: 'ja' | 'en';
 }
 
-export function Character({ styleId, mood = 'normal', theme = null, size = 88, reactKey, className = '' }: Props) {
+export function Character({ styleId, mood = 'normal', theme = null, size = 88, reactKey, className = '', lang = 'ja' }: Props) {
   const anim = reactKey ? (styleId === 'game' ? 'anim-hop' : 'anim-nod') : '';
   return (
     <svg
@@ -33,7 +34,7 @@ export function Character({ styleId, mood = 'normal', theme = null, size = 88, r
       height={size}
       viewBox="0 0 100 100"
       role="img"
-      aria-label={`${CHARACTER_NAMES[styleId]}（${moodLabel(mood)}）`}
+      aria-label={lang === 'en' ? `${CHARACTER_NAMES[styleId].en} (${moodLabelEn(mood)})` : `${CHARACTER_NAMES[styleId].ja}（${moodLabel(mood)}）`}
     >
       {styleId === 'pop' && <Pom mood={mood} />}
       {styleId === 'chic' && <Shiori mood={mood} />}
@@ -41,6 +42,10 @@ export function Character({ styleId, mood = 'normal', theme = null, size = 88, r
       {theme && <Accessory theme={theme} styleId={styleId} />}
     </svg>
   );
+}
+
+function moodLabelEn(m: Mood) {
+  return { normal: 'smiling', happy: 'happy', think: 'thinking', surprise: 'surprised' }[m];
 }
 
 function moodLabel(m: Mood) {

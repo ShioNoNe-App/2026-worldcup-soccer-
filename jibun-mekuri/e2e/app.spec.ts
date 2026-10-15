@@ -25,6 +25,12 @@ async function onboard(page: Page, opts: { style?: 'pop' | 'chic' | 'game' | 'sk
   await page.getByRole('button', { name: /このテーマでめくる/ }).click();
 }
 
+/** 選択肢を選んで「次へ」で確定する */
+async function answer(page: Page, label: string | RegExp) {
+  await page.getByRole('radio', { name: label }).click();
+  await page.getByTestId('confirm-answer').click();
+}
+
 async function answerUntilResult(page: Page, pick: (labels: string[]) => number = () => 0) {
   for (let i = 0; i < 10; i++) {
     if (await page.getByTestId('topic-result').isVisible()) return;
@@ -33,6 +39,7 @@ async function answerUntilResult(page: Page, pick: (labels: string[]) => number 
     const options = page.locator('.options .option');
     const labels = await options.allInnerTexts();
     await options.nth(pick(labels)).click();
+    await page.getByTestId('confirm-answer').click();
   }
   await expect(page.getByTestId('topic-result')).toBeVisible();
 }
@@ -68,7 +75,7 @@ test('A: 初回ユーザーが結果とテーマ選択までたどり着ける',
   await page.getByRole('button', { name: /めくる（1 \/ 6）/ }).click();
   await expect(page.getByRole('heading', { name: 'どっしり構える山タイプ' })).toBeVisible();
   await page.getByRole('button', { name: 'まとめて全部めくる' }).click();
-  await page.getByRole('button', { name: 'すごくある！' }).click();
+  await answer(page, 'すごくある！');
   await expect(page.getByText(/キーワード：/)).toBeVisible();
   await page.getByRole('button', { name: '次に知りたいテーマをえらぶ' }).click();
 
@@ -106,19 +113,19 @@ test('C: 恋愛を選ぶと恋愛の質問が出て、回答で次の質問が�
   await expect(page.getByRole('heading', { name: 'もっと知りたいことは？' })).toBeVisible();
   await page.getByRole('button', { name: /片思い中/ }).click();
   await expect(page.getByTestId('question')).toHaveText('好きな人との、今の距離は？');
-  await page.getByRole('button', { name: 'まだ遠くから見ている' }).click();
+  await answer(page, 'まだ遠くから見ている');
   await expect(page.getByTestId('question')).toHaveText('話すきっかけ、どう作れそう？');
   // キャラクターが回答に反応する
   await expect(page.locator('.bubble')).toHaveText('見ているだけでドキドキするやつだ。');
   // 特性が具体化する回答では、キーワードが表示される
-  await page.getByRole('button', { name: '共通の話題を探してみたい' }).click();
-  await expect(page.getByText(/見えてきた：/)).toBeVisible();
+  await answer(page, '共通の話題を探してみたい');
+  await expect(page.getByTestId('answer-feedback')).toContainText(/見えてきた：|発見カード/);
 
   // 結果は状況の回答に応じて変わり、別の回答なら別の質問へ分岐する
   await page.getByRole('button', { name: 'ここまでの結果を見る' }).click();
   await expect(page.getByTestId('topic-result')).toContainText('あいさつ');
-  await page.getByRole('button', { name: '答えなおす' }).click();
-  await page.getByRole('button', { name: 'よく話す・友達として仲がいい' }).click();
+  await page.getByRole('button', { name: '最初から答えなおす' }).click();
+  await answer(page, 'よく話す・友達として仲がいい');
   await expect(page.getByTestId('question')).toHaveText('あなたの好意、相手に伝わっていると思う？');
 });
 
@@ -130,6 +137,7 @@ test('D: 仕事を選ぶと仕事の質問と結果が出て、恋愛の質問�
     if (await page.getByTestId('topic-result').isVisible()) break;
     await expect(page.getByTestId('question')).not.toHaveText(loveWords);
     await page.locator('.options .option').first().click();
+    await page.getByTestId('confirm-answer').click();
   }
   const result = page.getByTestId('topic-result');
   await expect(result).toContainText('自分の強みの結果');
@@ -140,13 +148,13 @@ test('D: 仕事を選ぶと仕事の質問と結果が出て、恋愛の質問�
 test('E: 途中で再読み込みしても続きから再開できる', async ({ page }) => {
   await onboard(page, { themes: ['love'] });
   await page.getByRole('button', { name: /片思い中/ }).click();
-  await page.getByRole('button', { name: 'たまに話すくらい' }).click();
+  await answer(page, 'たまに話すくらい');
   await expect(page.getByTestId('question')).toHaveText('あなたの好意、相手に伝わっていると思う？');
   await page.reload();
   await expect(page.getByTestId('question')).toHaveText('あなたの好意、相手に伝わっていると思う？');
   // ホームには「つづきから」が出る
   await page.getByRole('button', { name: 'めくる', exact: true }).click();
-  await expect(page.getByRole('button', { name: '「片思い」をつづける' })).toBeVisible();
+  await expect(page.getByTestId('resume')).toHaveText('「片思い」をつづける');
 });
 
 test('F: 「わからない」「どれも違う」「スキップ」でも先に進める', async ({ page }) => {
@@ -161,7 +169,7 @@ test('F: 「わからない」「どれも違う」「スキップ」でも先�
 
   await page.getByRole('button', { name: /「恋愛」のテーマにもどる/ }).click();
   await page.getByRole('button', { name: /私の結婚観/ }).click();
-  await page.getByRole('button', { name: '答えたくない' }).click();
+  await answer(page, '答えたくない');
   await expect(page.getByTestId('question')).toBeVisible();
 });
 
@@ -172,7 +180,7 @@ test('G: 相性診断は相手の生年月日なしでも、ありでも使え�
   await answerUntilResult(page);
   await expect(page.getByTestId('compat-result')).toHaveCount(0);
 
-  await page.getByRole('button', { name: '答えなおす' }).click();
+  await page.getByRole('button', { name: '最初から答えなおす' }).click();
   await page.reload();
   await page.selectOption('#partner-y', '1999');
   await page.selectOption('#partner-m', '12');
@@ -233,4 +241,107 @@ test('キーボードだけでスタイルを選べる', async ({ page }) => {
   await page.keyboard.press('ArrowDown');
   await expect(page.getByTestId('style-chic')).toBeFocused();
   await expect(page.getByTestId('style-chic')).toHaveAttribute('aria-checked', 'true');
+});
+
+test('①: 答えは「次へ」を押すまで確定せず、選び直し・ひとつ前に戻れる', async ({ page }) => {
+  await onboard(page, { themes: ['love'] });
+  await page.getByRole('button', { name: /片思い中/ }).click();
+  const confirm = page.getByTestId('confirm-answer');
+  await expect(confirm).toBeDisabled();
+  await page.getByRole('radio', { name: 'まだ遠くから見ている' }).click();
+  // 選んだだけでは進まない
+  await expect(page.getByTestId('question')).toHaveText('好きな人との、今の距離は？');
+  await page.getByRole('radio', { name: 'たまに話すくらい' }).click();
+  await expect(page.getByRole('radio', { name: 'たまに話すくらい' })).toHaveAttribute('aria-checked', 'true');
+  await expect(page.getByRole('radio', { name: 'まだ遠くから見ている' })).toHaveAttribute('aria-checked', 'false');
+  await confirm.click();
+  await expect(page.getByTestId('question')).toHaveText('あなたの好意、相手に伝わっていると思う？');
+  // ひとつ前に戻ると、前の答えが選ばれた状態で修正できる
+  await page.getByRole('button', { name: /ひとつ前へ/ }).click();
+  await expect(page.getByTestId('question')).toHaveText('好きな人との、今の距離は？');
+  await expect(page.getByRole('radio', { name: 'たまに話すくらい' })).toHaveAttribute('aria-checked', 'true');
+  await answer(page, 'まだ遠くから見ている');
+  await expect(page.getByTestId('question')).toHaveText('話すきっかけ、どう作れそう？');
+  // 結果画面からも最後の回答を直せる
+  await page.getByRole('button', { name: 'ここまでの結果を見る' }).click();
+  await page.getByTestId('fix-last').click();
+  await expect(page.getByTestId('question')).toHaveText('好きな人との、今の距離は？');
+});
+
+test('②: 残りの質問数がひと目でわかる', async ({ page }) => {
+  await onboard(page, { themes: ['work'] });
+  await page.getByRole('button', { name: /私の強みって/ }).click();
+  const badge = page.getByTestId('remaining');
+  await expect(badge).toContainText('あと3問で結果だよ');
+  await expect(badge).toContainText('1問目 / 最大3問');
+  await page.locator('.options .option').first().click();
+  await page.getByTestId('confirm-answer').click();
+  await expect(badge).toContainText('あと2問');
+  await page.locator('.options .option').first().click();
+  await page.getByTestId('confirm-answer').click();
+  await expect(badge).toContainText('ラスト1問！');
+  await expect(page.getByTestId('confirm-answer')).toHaveText(/答えを選んでね|答えて結果を見る/);
+});
+
+test('③: 選んだテーマをホームから編集できる', async ({ page }) => {
+  await onboard(page, { themes: ['love', 'work'] });
+  await page.getByTestId('edit-themes').click();
+  await expect(page.getByRole('heading', { name: '見たいテーマを選びなおそう' })).toBeVisible();
+  await page.getByTestId('theme-work').click();
+  await page.getByTestId('theme-self').click();
+  await page.getByTestId('themes-confirm').click();
+  const list = page.locator('.topic-list');
+  await expect(list).toContainText('自分の性格・本当の自分');
+  await expect(list).not.toContainText('仕事・才能・キャリア');
+});
+
+test('④: 右上のボタンでいつでも英語と日本語を切り替えられる', async ({ page }) => {
+  await page.goto('/');
+  const toggle = page.getByTestId('lang-toggle');
+  await expect(toggle).toHaveText(/English/);
+  await toggle.click();
+  await expect(page.getByRole('heading', { name: 'Hey, what kind of person are you?' })).toBeVisible();
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  await page.getByRole('button', { name: 'Start my reading' }).click();
+  await page.getByTestId('style-skip').click();
+  await page.selectOption('#birth-y', '1995');
+  await page.selectOption('#birth-m', '8');
+  await page.selectOption('#birth-d', '17');
+  await page.getByTestId('profile-submit').click();
+  await page.getByTestId('reading-all').click();
+  await page.getByTestId('to-themes').click();
+  await page.getByTestId('theme-love').click();
+  await page.getByTestId('themes-confirm').click();
+  await page.getByRole('button', { name: /I have a crush/ }).click();
+  await expect(page.getByTestId('question')).toHaveText('How close are you to the person you like right now?');
+  // 途中でも日本語に戻せて、同じ質問が日本語で表示される
+  await page.getByTestId('lang-toggle').click();
+  await expect(page.getByTestId('question')).toHaveText('好きな人との、今の距離は？');
+  await page.getByTestId('lang-toggle').click();
+  await answer(page, 'We talk now and then');
+  await answerUntilResult(page);
+  const result = await page.getByTestId('topic-result').innerText();
+  expect(result).not.toMatch(/[぀-ヿ]/);
+  // 再読み込みしても英語のまま
+  await page.reload();
+  await expect(page.getByTestId('lang-toggle')).toHaveText(/日本語/);
+});
+
+test('⑤: タブメニューは画面上部にあり、画面下部（右下）に操作部品が重ならない', async ({ page }) => {
+  await onboard(page, { themes: ['love'] });
+  const nav = page.getByRole('navigation', { name: 'メインメニュー' });
+  const box = await nav.boundingBox();
+  const vh = page.viewportSize()!.height;
+  expect(box!.y).toBeLessThan(200);
+  // 画面下 72px の帯に固定配置の要素がない
+  const fixedAtBottom = await page.evaluate(() =>
+    Array.from(document.querySelectorAll<HTMLElement>('body *')).filter((el) => {
+      const cs = getComputedStyle(el);
+      if (cs.position !== 'fixed' || el.offsetParent === null) return false;
+      const r = el.getBoundingClientRect();
+      return r.height > 0 && r.bottom > window.innerHeight - 72;
+    }).length,
+  );
+  expect(fixedAtBottom).toBe(0);
+  expect(vh).toBeGreaterThan(0);
 });
