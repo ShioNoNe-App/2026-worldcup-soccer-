@@ -3,7 +3,7 @@ import { useApp, useT } from '../state/AppContext';
 import type { Screen } from '../state/types';
 import { voiceOf } from './voice';
 
-const WITH_TABS: Screen[] = ['home', 'theme', 'topic', 'themeRun', 'map', 'settings', 'about', 'themes'];
+const WITH_TABS: Screen[] = ['home', 'theme', 'topic', 'themeRun', 'daily', 'mekurin', 'map', 'settings', 'about', 'themes'];
 
 /** 言語切り替え（画面右上に常に表示） */
 export function LangToggle() {
@@ -66,7 +66,7 @@ function TabNav() {
   const { state, dispatch } = useApp();
   const T = useT();
   const current =
-    state.screen === 'theme' || state.screen === 'topic' || state.screen === 'themeRun' || state.screen === 'themes'
+    ['theme', 'topic', 'themeRun', 'themes', 'daily', 'mekurin'].includes(state.screen)
       ? 'home'
       : state.screen === 'about'
         ? 'settings'

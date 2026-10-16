@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { DailyCard, MekurinCard, PartnerCard, PartnerCharacter } from '../ui/Companion';
 import { BirthInputError, computeFourPillars } from '../engine/bazi/calendar';
 import {
   answeredInTopic,
@@ -16,7 +17,7 @@ import { THEME_BY_ID, THEMES, TOPIC_BY_ID, topicsOfTheme } from '../content/topi
 import { traitsOfTheme } from '../content/traits';
 import type { Lang } from '../i18n/lang';
 import { useApp, useT } from '../state/AppContext';
-import { Character, ThemeIcon, type Mood } from '../ui/Character';
+import { ThemeIcon, type Mood } from '../ui/Character';
 import { Burst, RemainingBadge, SectionLabel, TopBar } from '../ui/common';
 import { ThemeRunCta } from './ThemeRun';
 import { DateSelect, emptyDate, partsToIso, type DateParts } from '../ui/DateSelect';
@@ -81,10 +82,9 @@ export function Home() {
     <>
       <TopBar title={<span className="brand">{T('じぶんめくり', 'Jibun Mekuri')}</span>} />
       <main className="main">
-        <div className="char-header anim-rise">
-          <Character styleId={state.style} mood="happy" size={84} lang={lang} />
-          <p className="bubble">{showWelcomeBack ? voice.welcomeBack : voice.greeting}</p>
-        </div>
+        {showWelcomeBack && <p className="small muted" style={{ margin: '4px 0 8px' }}>{voice.welcomeBack}</p>}
+        <PartnerCard />
+        <DailyCard />
 
         {resumeTopic && (
           <div className="card card-accent anim-rise" data-accent={resumeTopic.theme}>
@@ -124,6 +124,8 @@ export function Home() {
             {T('じぶんマップを見る', 'See my map')}
           </button>
         </div>
+
+        <MekurinCard />
 
         <div className="section-head">
           <h2>{T('えらんだテーマ', 'Your themes')}</h2>
@@ -199,7 +201,7 @@ export function ThemeScreen() {
       <TopBar title={pick(t.title, lang)} onBack={() => dispatch({ type: 'go', screen: 'home' })} />
       <main className="main">
         <div className="char-header anim-rise">
-          <Character styleId={state.style} mood={mood} theme={theme} size={84} lang={lang} />
+          <PartnerCharacter styleId={state.style} mood={mood} theme={theme} size={84} lang={lang} />
           <p className="bubble">{T('まずは、命式から読めることをひとつ。', 'First, one thing your chart tells us.')}</p>
         </div>
         <div className="card card-accent anim-flip">
@@ -366,7 +368,7 @@ export function TopicScreen() {
       <TopBar title={pick(topic.title, lang)} onBack={backToTheme} />
       <main className="main" data-accent={topic.theme}>
         <div className="char-header">
-          <Character styleId={state.style} mood={fb?.mood ?? 'normal'} theme={topic.theme} size={80} reactKey={fb?.key} lang={lang} />
+          <PartnerCharacter styleId={state.style} mood={fb?.mood ?? 'normal'} theme={topic.theme} size={80} reactKey={fb?.key} lang={lang} />
           <p className="bubble anim-pop" key={fb?.key ?? 'intro'}>
             {showResult ? voice.topicDone : (fb?.text ?? pick(topic.ask, lang))}
           </p>
@@ -395,7 +397,7 @@ export function TopicScreen() {
                 <>
                   {fb && (
                     <div className="answer-feedback anim-pop" key={fb.key} aria-live="polite" data-testid="answer-feedback">
-                      <Character styleId={state.style} mood={fb.mood} theme={topic.theme} size={40} lang={lang} />
+                      <PartnerCharacter styleId={state.style} mood={fb.mood} theme={topic.theme} size={40} lang={lang} />
                       <span className="af-text">
                         <span>{fb.text}</span>
                         {fb.keyword && (

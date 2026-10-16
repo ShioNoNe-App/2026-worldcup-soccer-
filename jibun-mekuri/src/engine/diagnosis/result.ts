@@ -7,6 +7,7 @@ import {
   branchRelationText,
   dmText,
   elementText,
+  localizeQuestion,
   pick,
   pillarText,
   starGroupText,
@@ -18,7 +19,7 @@ import {
 } from '../../content/localize';
 import { TOPIC_BY_ID } from '../../content/topics';
 import type { Lang } from '../../i18n/lang';
-import { HYPOTHESIS_THRESHOLD, keywordOf, poleOf } from './engine';
+import { HYPOTHESIS_THRESHOLD, keywordOf, poleOf, resolveQuestion } from './engine';
 import type { DiagnosisContext, PointSource, ResultPoint, TopicDef, TopicResult, TraitId, TraitState } from './types';
 
 function sourceOf(t: TraitState): PointSource {
@@ -32,6 +33,24 @@ function priorKeyword(t: TraitState, lang: Lang): string {
 }
 
 const q = (lang: Lang, s: string) => (lang === 'en' ? `“${s}”` : `「${s}」`);
+
+/** 「〇〇」と答えたことから読み取った、という根拠の一文 */
+function evidenceLine(t: TraitState, ctx: DiagnosisContext, lang: Lang): string | null {
+  if (t.evidence.length === 0) return null;
+  const priors = Object.fromEntries(Object.values(ctx.traits).map((x) => [x.id, { value: x.prior }])) as Record<TraitId, { value: number }>;
+  const labels = t.evidence
+    .slice(-3)
+    .map(({ qid, optionId }) => {
+      const qd = resolveQuestion(qid, priors);
+      return qd ? localizeQuestion(qd, lang).options.find((o) => o.id === optionId)?.label : null;
+    })
+    .filter((x): x is string => Boolean(x));
+  if (labels.length === 0) return null;
+  const label = traitText(t.id, lang).label;
+  return lang === 'en'
+    ? `Why we read “${label}” this way: you answered ${labels.map((l) => `“${l}”`).join(', ')}.`
+    : `「${label}」の読み取りの根拠：あなたが${labels.map((l) => `「${l}」`).join('')}と答えたこと。`;
+}
 
 /** 命式からの仮説をひとこと（まだ回答していない特性のみ） */
 function hypothesisLine(ctx: DiagnosisContext, traits: TraitId[], lang: Lang): string {
@@ -115,6 +134,12 @@ export function composeTopicResult(topicId: string, ctx: DiagnosisContext, lang:
     tips.push({ kind: 'tip', text: text.tip, source });
   }
 
+  // 回答とのつながり: どの回答から読み取ったか
+  for (const t of top) {
+    const line = evidenceLine(t, ctx, lang);
+    if (line) notes.push({ kind: 'note', text: line, source: 'answer' });
+  }
+
   for (const e of topicExtras(topic, ctx, lang)) {
     const bucket = e.kind === 'strength' ? strengths : e.kind === 'caution' ? cautions : e.kind === 'tip' ? tips : notes;
     if (!bucket.some((p) => p.text === e.text)) bucket.push(e);
@@ -167,6 +192,7 @@ export function composeTopicResult(topicId: string, ctx: DiagnosisContext, lang:
   }
 
   const answeredTraits = states.filter((t) => t.self !== null);
+  const unanswered = states.filter((t) => t.self === null && !t.rejected);
   const labels = answeredTraits.map((t) => q(lang, traitText(t.id, lang).label));
   const progressNote =
     answeredTraits.length > 0
@@ -177,7 +203,14 @@ export function composeTopicResult(topicId: string, ctx: DiagnosisContext, lang:
         ? 'This is still based only on your chart.'
         : 'まだ占いの解釈だけの状態です。';
 
-  return { topicId, headline, lead: leadParts.join(lang === 'en' ? ' ' : ''), points: ordered, keywords, progressNote };
+  const missing =
+    unanswered.length > 0
+      ? lang === 'en'
+        ? ` ${unanswered.map((t) => q(lang, traitText(t.id, lang).label)).join(', ')} still has no answers — answering will make it more specific.`
+        : `${unanswered.map((t) => q(lang, traitText(t.id, lang).label)).join('')}はまだ回答がありません。答えるともっと具体的になります。`
+      : '';
+
+  return { topicId, headline, lead: leadParts.join(lang === 'en' ? ' ' : ''), points: ordered, keywords, progressNote: progressNote + missing };
 }
 
 // ---- 初期診断 ----

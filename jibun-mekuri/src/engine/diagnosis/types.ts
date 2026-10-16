@@ -99,6 +99,8 @@ export interface TraitState {
   status: TraitStatus;
   /** 解釈に使う値 */
   value: number;
+  /** 読み取りの根拠にした回答 */
+  evidence: { qid: string; optionId: string }[];
 }
 
 export type TraitMap = Record<TraitId, TraitState>;

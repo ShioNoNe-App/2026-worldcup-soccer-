@@ -413,3 +413,54 @@ test('運営者情報とお問い合わせが見られる', async ({ page }) => 
   await expect(op.getByRole('link', { name: 'stop2ask@gmail.com' })).toHaveAttribute('href', 'mailto:stop2ask@gmail.com');
   await expect(op.getByRole('link', { name: 'YouTube' })).toHaveAttribute('target', '_blank');
 });
+
+test('今日の3問・お世話・親密度が動き、再読み込み後も保たれる', async ({ page }) => {
+  await onboard(page, { themes: ['love', 'work'] });
+  await page.getByRole('button', { name: 'めくる', exact: true }).click();
+  const stage = page.getByTestId('partner-stage');
+  await expect(stage).toContainText('Lv.1');
+  await expect(page.getByTestId('answer-stats')).toContainText('回答済み');
+  await page.getByTestId('daily-start').click();
+  for (let i = 0; i < 3; i++) {
+    await page.locator('.options .option').first().click();
+    await page.getByTestId('confirm-answer').click();
+  }
+  await expect(page.getByTestId('run-done')).toContainText('今日の3問、クリア！');
+  // 回答で親密度が上がる（3問 × 2 = 6 で Lv.2）。段階アップは画面をふさがない通知で出る
+  await expect(page.getByRole('status')).toContainText('仲良くなった');
+  await page.getByRole('button', { name: 'ホームにもどる' }).click();
+  await expect(stage).toContainText('Lv.2');
+  await expect(page.getByTestId('daily-card')).toContainText('クリア');
+  // お世話: 1日1回。2回目は「満足」のセリフ
+  await page.getByTestId('care-feed').click();
+  await page.getByTestId('care-feed').click();
+  await expect(page.locator('.partner-bubble')).toContainText('満足');
+  // キャラを切り替えられる（メクリンは未解放）
+  await expect(page.getByTestId('partner-mekurin')).toBeDisabled();
+  await page.getByTestId('partner-noir').click();
+  await expect(page.getByRole('heading', { name: 'ノワ' })).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'ノワ' })).toBeVisible();
+  await page.getByTestId('partner-pom').click();
+  await expect(stage).toContainText('Lv.2');
+});
+
+test('基本の質問にすべて答えるとメクリンが解放され、保存される', async ({ page }) => {
+  await onboard(page, { themes: ['self'] });
+  await page.getByRole('button', { name: 'めくる', exact: true }).click();
+  await expect(page.getByTestId('mekurin-progress')).toContainText('0 / 14');
+  await page.getByTestId('mekurin-start').click();
+  for (let i = 0; i < 14; i++) {
+    if (await page.getByTestId('run-done').isVisible()) break;
+    await page.locator('.options .option').first().click();
+    await page.getByTestId('confirm-answer').click();
+  }
+  await expect(page.getByRole('dialog')).toContainText('ひみつのキャラクターが現れた！');
+  await page.getByRole('button', { name: 'メクリンと一緒にいる' }).click();
+  await page.getByRole('button', { name: 'ホームにもどる' }).click();
+  await expect(page.getByRole('heading', { name: 'メクリン' })).toBeVisible();
+  await expect(page.getByTestId('mekurin-card')).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'メクリン' })).toBeVisible();
+  await expect(page.getByTestId('partner-mekurin')).toBeEnabled();
+});

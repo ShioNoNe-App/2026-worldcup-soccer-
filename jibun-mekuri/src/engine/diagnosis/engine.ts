@@ -93,6 +93,7 @@ export function buildContext(chart: ChartAnalysis, answers: Answers, sources: Ex
   const unsure: Partial<Record<TraitId, number>> = {};
   const rejected = new Set<TraitId>();
   const tags = new Set<string>();
+  const evidence: Partial<Record<TraitId, { qid: string; optionId: string }[]>> = {};
 
   const ordered = Object.entries(answers).sort((a, b) => a[1].at - b[1].at);
   for (const [qid, rec] of ordered) {
@@ -104,6 +105,7 @@ export function buildContext(chart: ChartAnalysis, answers: Answers, sources: Ex
     if (opt.rejects) rejected.add(opt.rejects);
     if (opt.kind === 'unknown') q.targets.forEach((t) => (unsure[t] = (unsure[t] ?? 0) + 1));
     for (const [trait, v] of Object.entries(opt.effects ?? {}) as [TraitId, number][]) {
+      (evidence[trait] ??= []).push({ qid, optionId: rec.optionId });
       const s = (sums[trait] ??= { total: 0, n: 0 });
       s.total += v;
       s.n += 1;
@@ -127,6 +129,7 @@ export function buildContext(chart: ChartAnalysis, answers: Answers, sources: Ex
       unsure: unsure[id] ?? 0,
       status: statusOf(prior, self, isRejected),
       value: self === null ? effectivePrior : self * 0.75 + effectivePrior * 0.25,
+      evidence: evidence[id] ?? [],
     };
     traits[id] = state;
   }
@@ -252,8 +255,8 @@ export function nextThemeStep(theme: ThemeId, ctx: DiagnosisContext): ThemeStep 
   return null;
 }
 
-/** テーマで、まだ聞く予定の質問数（重複を除いた概算） */
-export function themeRemaining(theme: ThemeId, ctx: DiagnosisContext): number {
+/** テーマで、まだ聞く予定の質問（重複を除く） */
+export function themeRemainingIds(theme: ThemeId, ctx: DiagnosisContext): Set<string> {
   const ids = new Set<string>();
   themeIntroQuestions(theme)
     .filter((q) => isEligible(q, ctx))
@@ -263,7 +266,12 @@ export function themeRemaining(theme: ThemeId, ctx: DiagnosisContext): number {
       .filter((q) => isEligible(q, ctx))
       .forEach((q) => ids.add(q.id));
   }
-  return ids.size;
+  return ids;
+}
+
+/** テーマで、まだ聞く予定の質問数（重複を除いた概算） */
+export function themeRemaining(theme: ThemeId, ctx: DiagnosisContext): number {
+  return themeRemainingIds(theme, ctx).size;
 }
 
 /** テーマで回答済みの質問数 */

@@ -1,16 +1,27 @@
 // オリジナルキャラクター（SVG）。スタイルごとに別のキャラクターを描く。
 // - pop: 雲の精「ぽむ」
-// - chic: 線画のことり「しおり」
-// - game: 星のしっぽの相棒「コロ」
+// - chic: 大人っぽい黒猫「ノワ」
+// - game: クセのある相棒「コロ」
+// - 隠しキャラ: ページのモンスター「メクリン」
 import type { ThemeId } from '../engine/diagnosis/types';
-import type { StyleId } from '../state/types';
+import type { CharId, StyleId } from '../state/types';
 
 export type Mood = 'normal' | 'happy' | 'think' | 'surprise';
 
+export const STYLE_CHAR: Record<StyleId, CharId> = { pop: 'pom', chic: 'noir', game: 'koro' };
+
+export const CHAR_NAMES: Record<CharId, { ja: string; en: string }> = {
+  pom: { ja: 'ぽむちゃん', en: 'Pomu' },
+  noir: { ja: 'ノワ', en: 'Noir' },
+  koro: { ja: 'コロ', en: 'Koro' },
+  mekurin: { ja: 'メクリン', en: 'Mekurin' },
+};
+
+/** 互換: スタイルの標準キャラの名前 */
 export const CHARACTER_NAMES: Record<StyleId, { ja: string; en: string }> = {
-  pop: { ja: 'ぽむ', en: 'Pomu' },
-  chic: { ja: 'しおり', en: 'Shiori' },
-  game: { ja: 'コロ', en: 'Koro' },
+  pop: CHAR_NAMES.pom,
+  chic: CHAR_NAMES.noir,
+  game: CHAR_NAMES.koro,
 };
 
 interface Props {
@@ -22,10 +33,13 @@ interface Props {
   reactKey?: number | string;
   className?: string;
   lang?: 'ja' | 'en';
+  /** 表示するキャラ（省略時はスタイルの標準キャラ） */
+  charId?: CharId | null;
 }
 
-export function Character({ styleId, mood = 'normal', theme = null, size = 88, reactKey, className = '', lang = 'ja' }: Props) {
-  const anim = reactKey ? (styleId === 'game' ? 'anim-hop' : 'anim-nod') : '';
+export function Character({ styleId, mood = 'normal', theme = null, size = 88, reactKey, className = '', lang = 'ja', charId }: Props) {
+  const who = charId ?? STYLE_CHAR[styleId];
+  const anim = reactKey ? (who === 'koro' || who === 'mekurin' ? 'anim-hop' : 'anim-nod') : '';
   return (
     <svg
       key={reactKey}
@@ -34,11 +48,12 @@ export function Character({ styleId, mood = 'normal', theme = null, size = 88, r
       height={size}
       viewBox="0 0 100 100"
       role="img"
-      aria-label={lang === 'en' ? `${CHARACTER_NAMES[styleId].en} (${moodLabelEn(mood)})` : `${CHARACTER_NAMES[styleId].ja}（${moodLabel(mood)}）`}
+      aria-label={lang === 'en' ? `${CHAR_NAMES[who].en} (${moodLabelEn(mood)})` : `${CHAR_NAMES[who].ja}（${moodLabel(mood)}）`}
     >
-      {styleId === 'pop' && <Pom mood={mood} />}
-      {styleId === 'chic' && <Shiori mood={mood} />}
-      {styleId === 'game' && <Koro mood={mood} />}
+      {who === 'pom' && <Pom mood={mood} />}
+      {who === 'noir' && <Noir mood={mood} />}
+      {who === 'koro' && <Koro mood={mood} />}
+      {who === 'mekurin' && <Mekurin mood={mood} />}
       {theme && <Accessory theme={theme} styleId={styleId} />}
     </svg>
   );
@@ -114,91 +129,117 @@ function PomFace({ mood, ink }: { mood: Mood; ink: string }) {
 }
 
 // ---------- しおり（おしゃれ・自己理解） ----------
-function Shiori({ mood }: { mood: Mood }) {
-  const ink = 'var(--text)';
-  const tilt = mood === 'think' ? 'rotate(-8 50 60)' : mood === 'surprise' ? 'translate(0 -3)' : undefined;
+function Noir({ mood }: { mood: Mood }) {
+  // 座っている黒猫。細い線と落ち着いた色で、大人っぽく
+  const fur = '#2b2a33';
+  const eye = '#c9b458';
+  const tilt = mood === 'think' ? 'rotate(-6 50 70)' : undefined;
   return (
-    <g fill="none" stroke={ink} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="50" cy="52" r="42" stroke="var(--line)" strokeWidth="1.2" />
-      <path d="M22 80h56" stroke="var(--line)" />
+    <g strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="50" cy="52" r="44" fill="none" stroke="var(--line)" strokeWidth="1.2" />
+      <path d="M68 84c14 2 20-8 14-16" fill="none" stroke={fur} strokeWidth="5" />
+      <path d="M30 88c-2-16 2-30 10-38h20c8 8 12 22 10 38z" fill={fur} />
       <g transform={tilt}>
-        <path d="M30 64c0-15 11-26 25-26 9 0 15 6 15 14 0 14-13 24-28 24h-12" fill="var(--surface)" />
-        <path d="M70 50l9 2-9 3" fill="var(--accent)" stroke="var(--accent-ink)" />
-        {mood === 'surprise' ? (
-          <path d="M38 58c6-14 18-18 24-14" />
-        ) : (
-          <path d="M36 62c8 4 18 2 24-6" />
-        )}
-        <path d="M30 76l-8 6M34 76l-5 8" />
-        <ShioriEye mood={mood} />
-        {mood === 'happy' && <path d="M58 56q3 2 6 0" stroke="var(--accent-ink)" strokeWidth="1.5" />}
+        <path d="M30 42l-2-20 14 10M70 42l2-20-14 10" fill={fur} />
+        <path d="M31 28l2 8M69 28l-2 8" stroke="#6b5a6e" strokeWidth="2" />
+        <ellipse cx="50" cy="44" rx="21" ry="18" fill={fur} />
+        <NoirEyes mood={mood} eye={eye} />
+        <path d="M48 50l2 2 2-2" fill="none" stroke="#c98a9a" strokeWidth="1.6" />
+        <path d="M34 50h-10M34 53l-9 3M66 50h10M66 53l9 3" stroke="#8d8798" strokeWidth="1" />
+        {mood === 'happy' && <path d="M46 55q4 3 8 0" fill="none" stroke="#c98a9a" strokeWidth="1.4" />}
       </g>
-      <path d="M44 80v6M52 80v6" />
+      <path d="M40 88v-6M60 88v-6" stroke="#4a4752" strokeWidth="1.5" />
     </g>
   );
 }
 
-function ShioriEye({ mood }: { mood: Mood }) {
-  if (mood === 'happy') return <path d="M58 46q3-3 6 0" />;
-  if (mood === 'think') return <path d="M58 47h6" />;
-  if (mood === 'surprise') return <circle cx="61" cy="46" r="2.6" />;
-  return <circle cx="61" cy="47" r="1.8" fill="var(--text)" stroke="none" />;
+function NoirEyes({ mood, eye }: { mood: Mood; eye: string }) {
+  if (mood === 'happy')
+    return <path d="M38 43q4-4 8 0M54 43q4-4 8 0" fill="none" stroke={eye} strokeWidth="2.2" />;
+  if (mood === 'think')
+    return (
+      <g>
+        <path d="M38 43h8M54 43h8" stroke={eye} strokeWidth="2.4" />
+      </g>
+    );
+  const r = mood === 'surprise' ? 4.4 : 3.6;
+  return (
+    <g>
+      <ellipse cx="42" cy="43" rx={r} ry="4" fill={eye} />
+      <ellipse cx="58" cy="43" rx={r} ry="4" fill={eye} />
+      <ellipse cx="42" cy="43" rx={mood === 'surprise' ? 1.6 : 0.9} ry="3.4" fill="#1b1a20" />
+      <ellipse cx="58" cy="43" rx={mood === 'surprise' ? 1.6 : 0.9} ry="3.4" fill="#1b1a20" />
+    </g>
+  );
 }
 
-// ---------- コロ（キャラ・ゲーム） ----------
+// ---------- コロ（キャラ・ゲーム）: まんまるの体と2本のアンテナ。片方だけ上がる眉がクセ ----------
 function Koro({ mood }: { mood: Mood }) {
   const ink = '#23203a';
   return (
     <g stroke={ink} strokeWidth="3" strokeLinejoin="round" strokeLinecap="round">
-      <path d="M80 70c10-2 14-12 10-20" fill="none" />
-      <path d="M90 44l3 6 6 1-4 4 1 6-6-3-5 3 1-6-4-4 6-1z" fill="#ffc93c" strokeWidth="2.5" />
-      <path d="M22 40L18 14l20 12z" fill="var(--accent)" />
-      <path d="M78 40l4-26-20 12z" fill="var(--accent)" />
-      <ellipse cx="50" cy="58" rx="34" ry="31" fill="var(--accent)" />
-      <ellipse cx="50" cy="68" rx="20" ry="16" fill="#fff" />
+      <path d="M38 30c-4-8-2-16 2-20M62 30c6-6 12-8 18-6" fill="none" />
+      <path d="M40 4l2 5 5 1-4 3 1 5-4-3-4 3 1-5-4-3 5-1z" fill="#ffc93c" strokeWidth="2" />
+      <circle cx="83" cy="24" r="5" fill="#ff8fa3" strokeWidth="2.5" />
+      <path d="M50 26c22 0 36 16 36 34s-15 30-36 30-36-12-36-30 14-34 36-34z" fill="var(--accent)" />
+      <path d="M16 62l-8-6M84 62l9-7" fill="none" />
+      <ellipse cx="50" cy="70" rx="18" ry="13" fill="#fff" />
       <KoroFace mood={mood} ink={ink} />
-      <path d="M30 88h10M60 88h10" />
+      <path d="M34 89v4M66 89v4" />
     </g>
   );
 }
 
 function KoroFace({ mood, ink }: { mood: Mood; ink: string }) {
-  if (mood === 'happy') {
-    return (
-      <g fill="none">
-        <path d="M33 52q6-8 12 0M55 52q6-8 12 0" />
-        <path d="M43 62q7 9 14 0z" fill="#ff8fa3" />
-      </g>
-    );
-  }
-  if (mood === 'surprise') {
-    return (
-      <g>
-        <path d="M33 46l9 6-9 6M67 46l-9 6 9 6" fill="none" />
-        <ellipse cx="50" cy="66" rx="5" ry="6" fill={ink} />
-      </g>
-    );
-  }
-  if (mood === 'think') {
-    return (
-      <g>
-        <ellipse cx="39" cy="51" rx="6" ry="7" fill="#fff" />
-        <ellipse cx="61" cy="51" rx="6" ry="7" fill="#fff" />
-        <circle cx="41" cy="48" r="3" fill={ink} stroke="none" />
-        <circle cx="63" cy="48" r="3" fill={ink} stroke="none" />
-        <path d="M45 65h10" />
-      </g>
-    );
-  }
+  // 左はまるい目、右は細めた目。いつも何かたくらんでいる顔
+  const brow = mood === 'surprise' ? 'M54 38l12-4' : 'M54 40l12-2';
   return (
     <g>
-      <ellipse cx="39" cy="51" rx="6.5" ry="8" fill="#fff" />
-      <ellipse cx="61" cy="51" rx="6.5" ry="8" fill="#fff" />
-      <circle cx="40" cy="52" r="3.6" fill={ink} stroke="none" />
-      <circle cx="62" cy="52" r="3.6" fill={ink} stroke="none" />
-      <circle cx="41.5" cy="50" r="1.3" fill="#fff" stroke="none" />
-      <circle cx="63.5" cy="50" r="1.3" fill="#fff" stroke="none" />
-      <path d="M44 63q6 6 12 0" fill="none" />
+      <path d="M32 42l10 2" fill="none" />
+      <path d={brow} fill="none" />
+      {mood === 'happy' ? (
+        <path d="M34 52q5-6 10 0M56 52q5-6 10 0" fill="none" />
+      ) : (
+        <>
+          <circle cx="39" cy="51" r={mood === 'surprise' ? 7 : 6} fill="#fff" />
+          <circle cx="40" cy="52" r="3" fill={ink} stroke="none" />
+          {mood === 'think' ? <path d="M55 51h11" fill="none" /> : <path d="M55 52q6-4 11 0" fill="none" />}
+        </>
+      )}
+      {mood === 'surprise' ? (
+        <ellipse cx="50" cy="66" rx="4" ry="5" fill={ink} />
+      ) : (
+        <path d="M42 64l4 3 4-3 4 3 4-3" fill="none" strokeWidth="2.5" />
+      )}
+    </g>
+  );
+}
+
+// ---------- メクリン（隠しキャラ）: ページを重ねた体の小さなモンスター ----------
+function Mekurin({ mood }: { mood: Mood }) {
+  const ink = '#2c2440';
+  return (
+    <g stroke={ink} strokeWidth="2.6" strokeLinejoin="round" strokeLinecap="round">
+      <path d="M70 70c12 4 16 14 12 22l-6-4-4 6c-4-8-6-16-2-24z" fill="#e8505b" />
+      <path d="M22 84h56l-4-6H26z" fill="#fff6e0" />
+      <path d="M24 78h52l-3-5H27z" fill="#ffe3b3" />
+      <path d="M26 74c-4-30 6-48 24-48s28 18 24 48z" fill="#6fd3c1" />
+      <path d="M50 26c4-10 14-14 22-10-8 0-12 6-14 12z" fill="#fff6e0" />
+      <path d="M30 40l-6-12 12 6M70 40l6-12-12 6" fill="#fff6e0" />
+      <path d="M40 66h20" fill="none" stroke="#3aa996" strokeWidth="2" />
+      <path d="M50 58l2 4 4 1-3 3 1 4-4-2-4 2 1-4-3-3 4-1z" fill="#ffc93c" strokeWidth="1.6" />
+      {mood === 'happy' ? (
+        <path d="M36 46q5-6 10 0M54 46q5-6 10 0" fill="none" />
+      ) : (
+        <>
+          <ellipse cx="41" cy="46" rx="6" ry={mood === 'surprise' ? 8 : 7} fill="#fff" />
+          <ellipse cx="59" cy="46" rx="6" ry={mood === 'surprise' ? 8 : 7} fill="#fff" />
+          <circle cx={mood === 'think' ? 43 : 42} cy={mood === 'think' ? 44 : 47} r="3" fill={ink} stroke="none" />
+          <circle cx={mood === 'think' ? 61 : 60} cy={mood === 'think' ? 44 : 47} r="3" fill={ink} stroke="none" />
+        </>
+      )}
+      <path d="M45 54q5 4 10 0" fill="none" />
+      <path d="M53 55l1 3 2-3" fill="#fff" strokeWidth="1.6" />
     </g>
   );
 }

@@ -178,3 +178,64 @@ export const AXES: AxisDef[] = [
     },
   },
 ];
+
+const BIG5_TEXT = { ja: '', en: '' };
+
+/** ビッグファイブ風の5因子（回答した特性から求める簡易版。正式な心理検査ではない） */
+export const BIG5: AxisDef[] = [
+  {
+    id: 'b5_extraversion',
+    label: { ja: '外向性', en: 'Extraversion' },
+    low: { ja: '内向的', en: 'Introverted' },
+    high: { ja: '外向的', en: 'Extraverted' },
+    parts: [['self_energy', 1], ['rel_circle', 1], ['work_collab', 1]],
+    theme: 'self',
+    highText: BIG5_TEXT,
+    lowText: BIG5_TEXT,
+    midText: BIG5_TEXT,
+  },
+  {
+    id: 'b5_openness',
+    label: { ja: '開放性', en: 'Openness' },
+    low: { ja: '慣れ親しんだもの', en: 'Familiar' },
+    high: { ja: '新しい体験', en: 'New experiences' },
+    parts: [['life_mode', 1], ['work_drive', 1], ['work_structure', -1]],
+    theme: 'life',
+    highText: BIG5_TEXT,
+    lowText: BIG5_TEXT,
+    midText: BIG5_TEXT,
+  },
+  {
+    id: 'b5_agreeableness',
+    label: { ja: '協調性', en: 'Agreeableness' },
+    low: { ja: '率直・主張', en: 'Direct' },
+    high: { ja: '思いやり・調和', en: 'Warm & harmonious' },
+    parts: [['work_collab', 1], ['rel_conflict', -1], ['rel_role', -1]],
+    theme: 'relations',
+    highText: BIG5_TEXT,
+    lowText: BIG5_TEXT,
+    midText: BIG5_TEXT,
+  },
+  {
+    id: 'b5_conscientiousness',
+    label: { ja: '誠実性（計画性）', en: 'Conscientiousness' },
+    low: { ja: '柔軟・その場で', en: 'Flexible' },
+    high: { ja: '計画的・きちんと', en: 'Organized' },
+    parts: [['work_structure', 1], ['work_pace', -1], ['marriage_view', 1]],
+    theme: 'work',
+    highText: BIG5_TEXT,
+    lowText: BIG5_TEXT,
+    midText: BIG5_TEXT,
+  },
+  {
+    id: 'b5_sensitivity',
+    label: { ja: '情緒の敏感さ', en: 'Emotional sensitivity' },
+    low: { ja: '安定・おおらか', en: 'Steady' },
+    high: { ja: '敏感・繊細', en: 'Sensitive' },
+    parts: [['love_reassure', 1]],
+    theme: 'love',
+    highText: BIG5_TEXT,
+    lowText: BIG5_TEXT,
+    midText: BIG5_TEXT,
+  },
+];

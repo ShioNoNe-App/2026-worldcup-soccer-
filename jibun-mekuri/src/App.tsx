@@ -7,8 +7,9 @@ import { ThemeRunScreen } from './screens/ThemeRun';
 import { ProfileForm, Reading, StylePicker, ThemePicker, Welcome } from './screens/Onboarding';
 import { About, Settings } from './screens/Settings';
 import { Toasts } from './ui/common';
+import { CelebrationDialog, QuestionRunScreen } from './ui/Companion';
 
-const NEEDS_CHART: Screen[] = ['reading', 'themes', 'home', 'theme', 'topic', 'themeRun', 'map'];
+const NEEDS_CHART: Screen[] = ['reading', 'themes', 'home', 'theme', 'topic', 'themeRun', 'daily', 'mekurin', 'map'];
 
 export function App() {
   const { state, chart } = useApp();
@@ -40,11 +41,14 @@ export function App() {
         {screen === 'theme' && <ThemeScreen />}
         {screen === 'topic' && <TopicScreen />}
         {screen === 'themeRun' && <ThemeRunScreen />}
+        {screen === 'daily' && <QuestionRunScreen mode="daily" />}
+        {screen === 'mekurin' && <QuestionRunScreen mode="mekurin" />}
         {screen === 'map' && <MapScreen />}
         {screen === 'settings' && <Settings />}
         {screen === 'about' && <About />}
       </div>
       <Toasts />
+      <CelebrationDialog />
     </div>
   );
 }

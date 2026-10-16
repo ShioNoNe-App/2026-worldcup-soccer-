@@ -10,6 +10,7 @@ export const COMMON_OPTIONS_EN: Record<string, { label: string; reaction?: strin
   unknown: { label: 'Not sure yet', reaction: 'That’s a valid answer too.' },
   none: { label: 'None of these', reaction: 'Got it — none of them fit.' },
   skip: { label: 'Prefer not to say' },
+  na: { label: 'Doesn’t apply (no partner now)' },
 };
 
 export const QUESTIONS_EN: Record<string, QuestionText> = {
@@ -47,7 +48,7 @@ export const QUESTIONS_EN: Record<string, QuestionText> = {
     },
   },
   love_lead: {
-    text: 'Who decides where to go on a date?',
+    text: 'When you go out together, who decides where to go?',
     options: {
       me: { label: 'I want to decide', reaction: 'So dependable!' },
       together: { label: 'We decide together' },
@@ -114,7 +115,7 @@ export const QUESTIONS_EN: Record<string, QuestionText> = {
     },
   },
   partner_state: {
-    text: 'What best describes your relationship with your partner now?',
+    text: 'What best describes your relationship with your partner (or spouse) now?',
     options: {
       stable: { label: 'Stable and comfortable', reaction: 'Sounds like a good relationship.' },
       uneasy: { label: 'Fun, but a little anxious too' },
@@ -360,12 +361,14 @@ export const QUESTIONS_EN: Record<string, QuestionText> = {
     options: {
       crush: { label: 'I have a crush', reaction: 'Right in the middle of the butterflies.' },
       partner: { label: 'I have a partner' },
+      married: { label: 'I’m married' },
       reunion: { label: 'I’m thinking about an ex' },
       single: { label: 'Single for now' },
     },
   },
   love_value: {
     text: 'What do you want most from a partner?',
+    sub: 'If you don’t have one now, picture your ideal partner.',
     options: {
       safe: { label: 'Feeling safe when they’re around' },
       spark: { label: 'Excitement and sparks' },
@@ -375,6 +378,7 @@ export const QUESTIONS_EN: Record<string, QuestionText> = {
   },
   love_fight: {
     text: 'When you fight with a partner, what usually happens?',
+    sub: 'If you don’t have a partner now, answer from past experience.',
     options: {
       now: { label: 'I want to talk and make up right away' },
       cool: { label: 'I keep my distance until I calm down' },

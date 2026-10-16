@@ -5,7 +5,9 @@ import { computeJyotish, type JyotishChart } from '../engine/jyotish/jyotish';
 import type { DiagnosisContext } from '../engine/diagnosis/types';
 import { reducer, type Action } from './reducer';
 import { clearState, loadState, saveState } from './storage';
-import type { AppState } from './types';
+import type { AppState, CharId } from './types';
+import { partnerOf } from './reducer';
+import { COMPANIONS, mekurinProgress, stageOf } from '../content/companion';
 import { loadStyleFonts } from '../ui/fonts';
 
 export interface Toast {
@@ -26,6 +28,15 @@ interface AppContextValue {
   restored: boolean;
   loadWarning: boolean;
   deleteAll: () => void;
+  partner: CharId;
+  celebration: Celebration | null;
+  dismissCelebration: () => void;
+}
+
+export interface Celebration {
+  kind: 'stage' | 'mekurin';
+  who: CharId;
+  stage: number;
 }
 
 const Ctx = createContext<AppContextValue | null>(null);
@@ -51,6 +62,34 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (state.motion === 'reduce') root.dataset.motion = 'reduce';
     else delete root.dataset.motion;
   }, [state.style, state.motion, state.lang]);
+
+  // ---- 親密度の段階アップ・隠しキャラ解放のお祝い ----
+  const [celebration, setCelebration] = useState<Celebration | null>(null);
+  const notifyRef = useRef<(text: string, icon?: string) => void>(() => {});
+  const partner = partnerOf(state);
+  const points = state.intimacy[partner] ?? 0;
+  const lastStage = useRef<{ who: CharId; stage: number }>({ who: partner, stage: stageOf(points) });
+  useEffect(() => {
+    const stage = stageOf(points);
+    const prev = lastStage.current;
+    if (prev.who === partner && stage > prev.stage) {
+      // 回答の流れを止めないよう、段階アップは画面をふさがない通知で知らせる
+      const p = COMPANIONS[partner];
+      const en = state.lang === 'en';
+      notifyRef.current(
+        `${en ? p.stageUp.en : p.stageUp.ja} Lv.${stage + 1}「${en ? p.stages[stage].en : p.stages[stage].ja}」`,
+        '💗',
+      );
+    }
+    lastStage.current = { who: partner, stage };
+  }, [partner, points, state.lang]);
+
+  useEffect(() => {
+    if (!state.mekurinUnlocked && state.profile && mekurinProgress(state.answers).remaining.length === 0) {
+      dispatch({ type: 'unlockMekurin' });
+      setCelebration({ kind: 'mekurin', who: 'mekurin', stage: 0 });
+    }
+  }, [state.answers, state.mekurinUnlocked, state.profile]);
 
   useEffect(() => {
     const onHide = () => dispatch({ type: 'visited', at: Date.now() });
@@ -87,6 +126,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     window.setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 3200);
   }, []);
 
+  notifyRef.current = notify;
+
   const deleteAll = useCallback(() => {
     clearState();
     dispatch({ type: 'reset' });
@@ -99,13 +140,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
       chart,
       diag,
       jyotish,
+      partner,
+      celebration,
+      dismissCelebration: () => setCelebration(null),
       toasts,
       notify,
       restored: initial.restored,
       loadWarning: initial.corrupted,
       deleteAll,
     }),
-    [state, chart, diag, jyotish, toasts, notify, initial, deleteAll],
+    [state, chart, diag, jyotish, partner, celebration, toasts, notify, initial, deleteAll],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

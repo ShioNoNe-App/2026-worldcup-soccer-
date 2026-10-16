@@ -3,6 +3,7 @@ import type { Answers, ThemeId, TraitId } from '../engine/diagnosis/types';
 import type { Lang } from '../i18n/lang';
 
 export type StyleId = 'pop' | 'chic' | 'game';
+export type CharId = 'pom' | 'noir' | 'koro' | 'mekurin';
 export const STYLE_IDS: StyleId[] = ['pop', 'chic', 'game'];
 export const DEFAULT_STYLE: StyleId = 'pop';
 
@@ -16,6 +17,8 @@ export type Screen =
   | 'theme'
   | 'topic'
   | 'themeRun'
+  | 'daily'
+  | 'mekurin'
   | 'map'
   | 'settings'
   | 'about';
@@ -52,6 +55,17 @@ export interface AppState {
   compat: { partnerDay: Pillar } | null;
   motion: 'auto' | 'reduce';
   lang: Lang;
+  /** 一緒に過ごすキャラ（null ならスタイルの標準キャラ） */
+  partner: CharId | null;
+  /** キャラごとの親密度 */
+  intimacy: Record<CharId, number>;
+  /** 親密度を加算済みの質問（回答の変更・やり直しで二重に加算しない） */
+  countedQuestions: string[];
+  /** その日のお世話（1日1回ずつ） */
+  care: { date: string; fed: CharId[]; petted: CharId[] };
+  mekurinUnlocked: boolean;
+  /** 今日の3問 */
+  daily: { date: string; count: number };
   lastVisit: number | null;
 }
 
@@ -75,6 +89,12 @@ export function initialState(): AppState {
     compat: null,
     motion: 'auto',
     lang: 'ja',
+    partner: null,
+    intimacy: { pom: 0, noir: 0, koro: 0, mekurin: 0 },
+    countedQuestions: [],
+    care: { date: '', fed: [], petted: [] },
+    mekurinUnlocked: false,
+    daily: { date: '', count: 0 },
     lastVisit: null,
   };
 }

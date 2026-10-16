@@ -36,6 +36,12 @@ export function loadState(storage: Storage | null = safeStorage()): LoadResult {
     if (!Array.isArray(merged.completedTopics)) merged.completedTopics = [];
     if (!Array.isArray(merged.seenTraits)) merged.seenTraits = [];
     if (!Array.isArray(merged.themeRunsDone)) merged.themeRunsDone = [];
+    if (!isObject(merged.intimacy)) merged.intimacy = fresh.intimacy;
+    merged.intimacy = { ...fresh.intimacy, ...merged.intimacy };
+    if (!Array.isArray(merged.countedQuestions)) merged.countedQuestions = Object.keys(merged.answers);
+    if (!isObject(merged.care) || !Array.isArray(merged.care.fed) || !Array.isArray(merged.care.petted)) merged.care = fresh.care;
+    if (!isObject(merged.daily)) merged.daily = fresh.daily;
+    if (typeof merged.mekurinUnlocked !== 'boolean') merged.mekurinUnlocked = false;
     if (!isObject(merged.topicExtra)) merged.topicExtra = {};
     if (merged.profile !== null && (!isObject(merged.profile) || typeof merged.profile.birthDate !== 'string')) {
       return { state: { ...fresh, style: merged.style, styleChosen: merged.styleChosen }, corrupted: true, restored: false };

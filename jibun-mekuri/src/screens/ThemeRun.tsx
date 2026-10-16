@@ -1,5 +1,6 @@
 // テーマの質問に、最初から最後までまとめて答える画面と、そのテーマのレポート。
 import { useEffect, useState } from 'react';
+import { PartnerCharacter } from '../ui/Companion';
 import { buildContext, feedbackFor, keywordOf, nextThemeStep, themeAnswered, themeRemaining, themeRunTopics } from '../engine/diagnosis/engine';
 import { axisScores, composeThemeReport } from '../engine/diagnosis/profile';
 import type { ThemeId } from '../engine/diagnosis/types';
@@ -8,7 +9,7 @@ import { THEME_BY_ID, TOPICS } from '../content/topics';
 import { traitsOfTheme } from '../content/traits';
 import { useApp, useT } from '../state/AppContext';
 import { AxisMeters } from '../ui/charts';
-import { Character, type Mood } from '../ui/Character';
+import { type Mood } from '../ui/Character';
 import { Burst, RemainingBadge, SectionLabel, TopBar } from '../ui/common';
 import { QuestionCard, type ConfirmInfo } from '../ui/QuestionCard';
 import { ShareButton } from '../ui/Share';
@@ -158,7 +159,7 @@ export function ThemeRunScreen() {
           <>
             {answered === 0 && (
               <div className="char-header anim-rise">
-                <Character styleId={state.style} mood="happy" theme={theme} size={72} lang={lang} />
+                <PartnerCharacter styleId={state.style} mood="happy" theme={theme} size={72} lang={lang} />
                 <p className="bubble">
                   {T('このテーマの質問に、続けて答えていこう。最後にまとめてレポートにするね。', 'Let’s answer this theme’s questions in a row. I’ll put it all into a report at the end.')}
                 </p>
@@ -175,7 +176,7 @@ export function ThemeRunScreen() {
                 <>
                   {fb && (
                     <div className="answer-feedback anim-pop" key={fb.key} aria-live="polite" data-testid="answer-feedback">
-                      <Character styleId={state.style} mood={fb.mood} theme={theme} size={40} lang={lang} />
+                      <PartnerCharacter styleId={state.style} mood={fb.mood} theme={theme} size={40} lang={lang} />
                       <span className="af-text">
                         <span>{fb.text}</span>
                         {fb.keyword && (
@@ -220,7 +221,7 @@ function ThemeReportView({ theme, onRestart }: { theme: ThemeId; onRestart: () =
   return (
     <div className="stack" data-testid="theme-report">
       <div className="char-header anim-rise">
-        <Character styleId={state.style} mood="happy" theme={theme} size={80} lang={lang} />
+        <PartnerCharacter styleId={state.style} mood="happy" theme={theme} size={80} lang={lang} />
         <p className="bubble">{voice.topicDone}</p>
       </div>
       <div className="card anim-flip">

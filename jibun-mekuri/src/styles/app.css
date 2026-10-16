@@ -1057,7 +1057,7 @@ select {
 }
 
 .toast {
-  pointer-events: auto;
+  pointer-events: none;
   max-width: 440px;
   width: 100%;
   display: flex;
@@ -1842,4 +1842,94 @@ li {
 .site-footer {
   text-align: center;
   margin-top: 24px;
+}
+
+/* ================= キャラクターとの交流 ================= */
+
+.partner-main {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.partner-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.partner-bubble {
+  max-width: none;
+  margin: 12px 0;
+}
+
+.partner-bubble::after {
+  display: none;
+}
+
+.partner-switch {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.partner-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 68px;
+  min-height: 64px;
+  padding: 4px 6px;
+  border-radius: calc(var(--radius-card) * 0.5);
+  border: var(--border-width) solid var(--border-color);
+  background: var(--surface);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.partner-chip[aria-checked='true'] {
+  border-color: var(--accent-ink);
+  background: var(--accent-soft);
+  box-shadow: 0 0 0 2px var(--accent-ink) inset;
+}
+
+.partner-chip:disabled {
+  cursor: not-allowed;
+  color: var(--text-muted);
+}
+
+.partner-locked {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 2px dashed var(--line);
+  font-size: 1rem;
+}
+
+.mekurin-silhouette {
+  filter: brightness(0) opacity(0.25);
+  flex-shrink: 0;
+}
+
+.celebrate {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  padding: 8px 0;
+}
+
+.partner-card .row > .btn {
+  flex: 1;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+.partner-chip span:last-child {
+  white-space: nowrap;
 }

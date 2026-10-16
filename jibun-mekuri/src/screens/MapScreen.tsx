@@ -1,13 +1,16 @@
 import { useState } from 'react';
+import { PartnerCharacter } from '../ui/Companion';
 import { keywordOf } from '../engine/diagnosis/engine';
 import type { ThemeId, TraitId, TraitState } from '../engine/diagnosis/types';
 import { basisText, dmText, elementText, pick, traitText } from '../content/localize';
-import { composeProfileReport } from '../engine/diagnosis/profile';
+import { axisScores, composeProfileReport, derivedType16 } from '../engine/diagnosis/profile';
+import { BIG5 } from '../content/axes';
+import { TYPES16, isTypeCode } from '../content/types16';
+import { THEME_BY_ID } from '../content/topics';
 import { AxisMeters, NakshatraWheel, RadarChart } from '../ui/charts';
 import { THEMES } from '../content/topics';
 import { traitsOfTheme } from '../content/traits';
 import { useApp, useT } from '../state/AppContext';
-import { Character } from '../ui/Character';
 import { Dialog, SectionLabel, TopBar } from '../ui/common';
 import { ShareButton } from '../ui/Share';
 import { STATUS_INFO } from './Explore';
@@ -54,7 +57,7 @@ export function MapScreen() {
       <TopBar title={T('じぶんマップ', 'My map')} />
       <main className="main">
         <div className="map-center anim-rise">
-          <Character styleId={state.style} mood="happy" size={92} lang={lang} />
+          <PartnerCharacter styleId={state.style} mood="happy" size={92} lang={lang} />
           <h1 style={{ margin: '8px 0 0' }}>{dm.nickname}</h1>
         </div>
 
@@ -90,6 +93,8 @@ export function MapScreen() {
             )}
           </p>
         </section>
+
+        <Type16AndBig5 />
 
         <section className="card" style={{ marginTop: 16 }}>
           <SectionLabel n={2}>{T('3つの占術から見たあなた', 'You, through three lenses')}</SectionLabel>
@@ -290,5 +295,89 @@ function TraitDetail({ trait, onClose }: { trait: TraitState; onClose: () => voi
         {T('閉じる', 'Close')}
       </button>
     </Dialog>
+  );
+}
+
+const DIM_LABELS: Record<string, { ja: string; en: string }> = {
+  EI: { ja: 'エネルギーの向き（E/I）', en: 'Energy (E/I)' },
+  NS: { ja: 'ものの見方（N/S）', en: 'Perception (N/S)' },
+  FT: { ja: '決め方（F/T）', en: 'Deciding (F/T)' },
+  JP: { ja: '進め方（J/P）', en: 'Structure (J/P)' },
+};
+
+/** 回答から求めた独自の16タイプと、ビッグファイブ風の傾向 */
+function Type16AndBig5() {
+  const { state, diag } = useApp();
+  const T = useT();
+  const lang = state.lang;
+  if (!diag) return null;
+  const derived = derivedType16(diag);
+  const big5 = axisScores(diag, BIG5);
+  const answeredBig5 = big5.filter((b) => b.answeredParts > 0);
+  const t = derived.code && isTypeCode(derived.code) ? TYPES16[derived.code] : null;
+  const self = state.profile?.type16;
+  return (
+    <section className="card" style={{ marginTop: 16 }} data-testid="derived-types">
+      <SectionLabel n={2}>{T('回答から見た性格タイプ', 'Personality types from your answers')}</SectionLabel>
+      <h3 style={{ marginBottom: 4 }}>{T('じぶんめくり16タイプ（独自）', 'Jibun Mekuri 16 types (original)')}</h3>
+      {t && derived.code ? (
+        <>
+          <p style={{ margin: 0 }}>
+            <strong data-testid="derived-code">
+              {derived.code}：{pick(t.nickname, lang)}
+            </strong>
+          </p>
+          <p style={{ margin: '4px 0 0' }}>
+            {pick(t.summary, lang)} {T(`強み：${t.strength.ja}。注意：${t.caution.ja}。`, `Strength: ${t.strength.en}. Watch out: ${t.caution.en}.`)}
+          </p>
+          {self && self !== derived.code && (
+            <p className="small muted" style={{ margin: '4px 0 0' }}>
+              {T(`自己申告のタイプ（${self}）とは少し違う結果です。場面によって出る面が違うのかもしれません。`, `This differs from your self-reported type (${self}). Different sides may show in different situations.`)}
+            </p>
+          )}
+        </>
+      ) : (
+        <p className="small muted" style={{ margin: 0 }}>
+          {T('4つの指標すべてに回答がそろうと判定します。', 'We determine it once all four dimensions have answers.')}
+        </p>
+      )}
+      <ul className="points" style={{ marginTop: 8 }}>
+        {derived.letters.map((l) => (
+          <li className="point" key={l.dim}>
+            <span className="point-icon" aria-hidden="true">
+              {l.letter ?? '？'}
+            </span>
+            <p>
+              <strong>{pick(DIM_LABELS[l.dim], lang)}</strong>
+              <br />
+              {l.letter
+                ? T(`「${l.letter}」寄り（はっきり度 ${l.strength}%）`, `Leans “${l.letter}” (clarity ${l.strength}%)`)
+                : T(`まだ回答がありません（「${pick(THEME_BY_ID[l.theme].short, 'ja')}」のテーマで答えられます）`, `No answers yet (answer in “${pick(THEME_BY_ID[l.theme].short, 'en')}”)`)}
+            </p>
+          </li>
+        ))}
+      </ul>
+      <p className="small muted">
+        {T(
+          'このアプリ独自の判定で、MBTI®など公式の診断とは関係ありません。',
+          'This is the app’s own assessment and is not affiliated with MBTI® or any official test.',
+        )}
+      </p>
+
+      <h3 style={{ marginTop: 16, marginBottom: 4 }}>{T('ビッグファイブ風の傾向（簡易）', 'Big Five-style tendencies (simplified)')}</h3>
+      {answeredBig5.length > 0 ? (
+        <AxisMeters scores={big5} lang={lang} />
+      ) : (
+        <p className="small muted" style={{ margin: 0 }}>
+          {T('質問に答えると表示されます。', 'Shown once you answer some questions.')}
+        </p>
+      )}
+      <p className="small muted" style={{ marginBottom: 0 }}>
+        {T(
+          '心理学で使われる5つの性格因子の考え方を参考に、あなたの回答と占術の仮説から目安を出したものです。正式な心理検査ではありません。',
+          'A rough guide inspired by the five-factor model in psychology, based on your answers and the chart hypotheses. Not a formal psychological test.',
+        )}
+      </p>
+    </section>
   );
 }

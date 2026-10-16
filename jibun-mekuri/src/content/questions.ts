@@ -64,17 +64,19 @@ export const QUESTIONS: QuestionDef[] = [
     id: 'love_lead',
     theme: 'love',
     topics: ['fit', 'partner', 'closer', 'compat'],
-    text: 'デートの行き先を決めるのは？',
+    text: 'ふたりで出かけるとき、行き先を決めるのは？',
     targets: ['love_lead'],
     options: [
       { id: 'me', label: '自分が決めたい', effects: { love_lead: 1 }, reaction: '頼れる〜！' },
       { id: 'together', label: '相談して一緒に決めたい', effects: { love_lead: 0 } },
       { id: 'them', label: '相手におまかせしたい', effects: { love_lead: -1 } },
       UNKNOWN,
+      { id: 'na', label: '当てはまらない（今は相手がいない）', kind: 'skip' },
     ],
   },
   {
     id: 'marriage_timing',
+    excludesTags: ['status:married'],
     theme: 'love',
     topics: ['marriage'],
     fact: true,
@@ -192,7 +194,7 @@ export const QUESTIONS: QuestionDef[] = [
     topics: ['partner'],
     fact: true,
     priority: 10,
-    text: '今の恋人との関係、いちばん近いのは？',
+    text: '今のパートナー（恋人・配偶者）との関係、いちばん近いのは？',
     targets: [],
     options: [
       { id: 'stable', label: '安定していて心地いい', tags: ['rel:stable'], reaction: 'いい関係なんだね。' },
@@ -611,6 +613,7 @@ export const QUESTIONS: QuestionDef[] = [
     options: [
       { id: 'crush', label: '片思い中', tags: ['status:crush'], reaction: 'ドキドキの真っ最中だね。' },
       { id: 'partner', label: '恋人・パートナーがいる', tags: ['status:partner'] },
+      { id: 'married', label: '結婚している', tags: ['status:partner', 'status:married'] },
       { id: 'reunion', label: '元の恋人のことを考えている', tags: ['status:reunion'] },
       { id: 'single', label: '今はフリー', tags: ['status:single'] },
       { id: 'skip', label: '答えたくない', kind: 'skip', tags: ['status:skip'] },
@@ -622,7 +625,8 @@ export const QUESTIONS: QuestionDef[] = [
     id: 'love_value',
     theme: 'love',
     topics: ['love_style', 'fit', 'marriage'],
-    text: '恋人にいちばん求めるものは？',
+    text: 'パートナーにいちばん求めるものは？',
+    sub: '今相手がいない場合は、理想の相手を思い浮かべてください。',
     targets: ['marriage_view', 'love_pace'],
     options: [
       { id: 'safe', label: 'そばにいて安心できること', effects: { marriage_view: 0.5, love_reassure: 0.3 } },
@@ -636,7 +640,8 @@ export const QUESTIONS: QuestionDef[] = [
     id: 'love_fight',
     theme: 'love',
     topics: ['pattern', 'partner', 'fit'],
-    text: '恋人とケンカしたら、どうなりがち？',
+    text: 'パートナーとケンカしたら、どうなりがち？',
+    sub: '今相手がいない場合は、これまでの経験で答えてください。',
     targets: ['rel_conflict'],
     options: [
       { id: 'now', label: 'すぐに話して仲直りしたい', effects: { rel_conflict: 1 } },
@@ -644,13 +649,14 @@ export const QUESTIONS: QuestionDef[] = [
       { id: 'wait', label: '相手から謝ってほしい', effects: { rel_conflict: -0.4, love_lead: 0.3 } },
       { id: 'avoid', label: 'ケンカ自体をさけてしまう', effects: { rel_conflict: -1 }, tags: ['hide'] },
       UNKNOWN,
+      { id: 'na', label: '当てはまらない（今は相手がいない）', kind: 'skip' },
     ],
   },
   {
     id: 'love_jealous',
     theme: 'love',
     topics: ['pattern', 'love_style', 'partner'],
-    text: '恋人が友達と2人で遊びに行く。正直な気持ちは？',
+    text: 'パートナーが友達と2人で出かける。正直な気持ちは？',
     targets: ['love_reassure', 'love_distance'],
     options: [
       { id: 'fine', label: 'まったく気にならない', effects: { love_reassure: -1, love_distance: -0.4 } },
@@ -658,6 +664,7 @@ export const QUESTIONS: QuestionDef[] = [
       { id: 'tell', label: '前もって言ってくれればOK', effects: { love_reassure: 0.5 } },
       { id: 'no', label: '正直イヤ', effects: { love_reassure: 1, love_distance: 0.5 } },
       UNKNOWN,
+      { id: 'na', label: '当てはまらない（今は相手がいない）', kind: 'skip' },
     ],
   },
   {

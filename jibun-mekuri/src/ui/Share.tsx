@@ -1,10 +1,10 @@
 // シェア機能。シェア内容は「タイトル・見出し・キーワード」だけで、
 // 生年月日・命式・相手の情報・自由記述は含めない。
 import { useRef, useState } from 'react';
+import { PartnerCharacter } from './Companion';
 import type { ThemeId } from '../engine/diagnosis/types';
 import { useApp, useT } from '../state/AppContext';
 import type { StyleId } from '../state/types';
-import { Character } from './Character';
 import { Dialog } from './common';
 
 export interface ShareContent {
@@ -83,7 +83,7 @@ function ShareDialog({ content, onClose }: { content: ShareContent; onClose: () 
   return (
     <Dialog title={T('結果をシェア', 'Share your result')} onClose={onClose}>
       <div className="share-card" ref={cardRef} data-accent={content.theme} data-testid="share-card">
-        <Character styleId={state.style} mood="happy" theme={content.theme ?? null} size={64} lang={state.lang} />
+        <PartnerCharacter styleId={state.style} mood="happy" theme={content.theme ?? null} size={64} lang={state.lang} />
         <div className="s-title">{content.title}</div>
         <div className="s-head">{content.headline}</div>
         {content.keywords.length > 0 && (

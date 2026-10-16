@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { PartnerCharacter } from '../ui/Companion';
 import { BirthInputError, computeFourPillars } from '../engine/bazi/calendar';
 import { BRANCHES, STEMS, pillarLabel, type Pillar } from '../engine/bazi/constants';
 import { buildContext, checkQuestionFor, feedbackFor } from '../engine/diagnosis/engine';
@@ -30,7 +31,7 @@ export function Welcome() {
       <TopBar title={<span className="brand">{T('じぶんめくり', 'Jibun Mekuri')}</span>} />
       <main className="main">
         <div className="hero anim-rise">
-          <Character styleId={state.style} mood="happy" size={132} className="anim-float" lang={state.lang} />
+          <PartnerCharacter styleId={state.style} mood="happy" size={132} className="anim-float" lang={state.lang} />
           <h1 style={{ marginTop: 16 }}>{T('ねえ、あなたってどんな人？', 'Hey, what kind of person are you?')}</h1>
           <p>{T('占ってみたら、まだ知らない自分に出会えるかも。', 'A little fortune-telling might help you meet a side of yourself you haven’t met yet.')}</p>
         </div>
@@ -560,7 +561,7 @@ export function Reading() {
     checkQ ? (
       <div data-accent="love" key="5" style={{ position: 'relative' }}>
         <div className="char-header">
-          <Character styleId={state.style} mood={fb?.mood ?? 'think'} size={72} reactKey={fb?.key} lang={lang} />
+          <PartnerCharacter styleId={state.style} mood={fb?.mood ?? 'think'} size={72} reactKey={fb?.key} lang={lang} />
           <p className="bubble anim-pop" key={fb?.key ?? 'q'}>
             {fb ? fb.text : T('命式からの仮説、当たってるかな？', 'Does the hypothesis from your chart ring true?')}
           </p>
@@ -615,7 +616,7 @@ export function Reading() {
       <TopBar title={T('あなたの基本の命式', 'Your basic chart')} />
       <main className="main">
         <div className="char-header anim-rise">
-          <Character styleId={state.style} mood="happy" size={72} lang={lang} />
+          <PartnerCharacter styleId={state.style} mood="happy" size={72} lang={lang} />
           <p className="bubble">
             {step === 0 ? T('命式がひらいたよ。1枚ずつめくってみよう。', 'Your chart is open. Let’s flip through it one card at a time.') : voice.reactions[step % voice.reactions.length]}
           </p>

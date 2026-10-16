@@ -192,8 +192,8 @@ export const TOPICS: TopicDef[] = [
     id: 'partner',
     theme: 'love',
     gate: ['status:partner'],
-    title: { ja: '交際中の相手との関係', en: 'Your current relationship' },
-    ask: { ja: '今の恋人との関係、どうしたらいい？', en: 'How can I improve things with my partner?' },
+    title: { ja: 'パートナーとの関係', en: 'Your relationship' },
+    ask: { ja: '今のパートナーとの関係、どうしたらいい？', en: 'How can I improve things with my partner?' },
     traits: ['love_reassure', 'love_distance', 'rel_conflict', 'love_express'],
     maxQuestions: 3,
     intro: {

@@ -2,7 +2,8 @@ import type { Pillar } from '../engine/bazi/constants';
 import type { ThemeId, TraitId } from '../engine/diagnosis/types';
 import type { Lang } from '../i18n/lang';
 import { TOPIC_BY_ID } from '../content/topics';
-import { initialState, type AppState, type Profile, type Screen, type StyleId } from './types';
+import { mekurinProgress } from '../content/companion';
+import { initialState, type AppState, type CharId, type Profile, type Screen, type StyleId } from './types';
 
 export type Action =
   | { type: 'setStyle'; style: StyleId; chosen?: boolean }
@@ -12,7 +13,10 @@ export type Action =
   | { type: 'toggleTheme'; theme: ThemeId }
   | { type: 'addTheme'; theme: ThemeId }
   | { type: 'finishOnboarding' }
-  | { type: 'answer'; questionId: string; optionId: string; topic: string; at: number }
+  | { type: 'answer'; questionId: string; optionId: string; topic: string; at: number; daily?: string }
+  | { type: 'care'; kind: 'feed' | 'pet'; date: string }
+  | { type: 'setPartner'; partner: CharId }
+  | { type: 'unlockMekurin' }
   | { type: 'undoAnswer'; questionId: string }
   | { type: 'setThemes'; themes: ThemeId[] }
   | { type: 'setLang'; lang: Lang }
@@ -27,6 +31,15 @@ export type Action =
   | { type: 'setMotion'; motion: 'auto' | 'reduce' }
   | { type: 'visited'; at: number }
   | { type: 'reset'; keepStyle?: boolean };
+
+/** 親密度の増え方（ここで一元管理） */
+export const INTIMACY = { answer: 2, care: 1 };
+
+const STYLE_DEFAULT: Record<string, CharId> = { pop: 'pom', chic: 'noir', game: 'koro' };
+
+export function partnerOf(state: AppState): CharId {
+  return state.partner ?? STYLE_DEFAULT[state.style] ?? 'pom';
+}
 
 /** 回答を記録したトピックのテーマ（'theme:love' のようなテーマ入口の質問も含む） */
 function themeOfTopic(topic: string): ThemeId | null {
@@ -82,12 +95,41 @@ export function reducer(state: AppState, action: Action): AppState {
         : { ...state, selectedThemes: [...state.selectedThemes, action.theme] };
     case 'finishOnboarding':
       return { ...state, onboarded: true, screen: 'home' };
-    case 'answer':
+    case 'answer': {
       if (state.answers[action.questionId]) return state;
-      return {
+      const next: AppState = {
         ...state,
         answers: { ...state.answers, [action.questionId]: { optionId: action.optionId, topic: action.topic, at: action.at } },
       };
+      // 初めて答えた質問だけ、いま一緒にいるキャラとの親密度を上げる
+      if (!state.countedQuestions.includes(action.questionId)) {
+        const who = partnerOf(state);
+        next.countedQuestions = [...state.countedQuestions, action.questionId];
+        next.intimacy = { ...state.intimacy, [who]: (state.intimacy[who] ?? 0) + INTIMACY.answer };
+      }
+      if (action.daily) {
+        next.daily = { date: action.daily, count: state.daily.date === action.daily ? state.daily.count + 1 : 1 };
+      }
+      return next;
+    }
+    case 'care': {
+      const who = partnerOf(state);
+      const care = state.care.date === action.date ? state.care : { date: action.date, fed: [], petted: [] };
+      const list = action.kind === 'feed' ? care.fed : care.petted;
+      if (list.includes(who)) return state;
+      return {
+        ...state,
+        care: action.kind === 'feed' ? { ...care, fed: [...care.fed, who] } : { ...care, petted: [...care.petted, who] },
+        intimacy: { ...state.intimacy, [who]: (state.intimacy[who] ?? 0) + INTIMACY.care },
+      };
+    }
+    case 'setPartner':
+      if (action.partner === 'mekurin' && !state.mekurinUnlocked) return state;
+      return { ...state, partner: action.partner };
+    case 'unlockMekurin':
+      // 対象の質問にすべて答えていなければ解放しない
+      if (state.mekurinUnlocked || mekurinProgress(state.answers).remaining.length > 0) return state;
+      return { ...state, mekurinUnlocked: true };
     case 'undoAnswer': {
       if (!state.answers[action.questionId]) return state;
       const { [action.questionId]: removed, ...answers } = state.answers;

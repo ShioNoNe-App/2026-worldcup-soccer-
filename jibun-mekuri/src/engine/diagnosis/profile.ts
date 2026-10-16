@@ -35,8 +35,8 @@ function axisValue(axis: AxisDef, get: (t: TraitId) => number | null | undefined
   return vals.reduce<number>((a, v) => a + (v ?? 0), 0) / vals.length;
 }
 
-export function axisScores(ctx: DiagnosisContext): AxisScore[] {
-  return AXES.map((axis) => {
+export function axisScores(ctx: DiagnosisContext, axes: AxisDef[] = AXES): AxisScore[] {
+  return axes.map((axis) => {
     const hyp = axisValue(axis, (t) => (ctx.traits[t].rejected ? 0 : ctx.traits[t].prior)) ?? 0;
     const cur = axisValue(axis, (t) => ctx.traits[t].value) ?? 0;
     const bySource = {
@@ -254,4 +254,34 @@ export function composeThemeReport(theme: ThemeId, ctx: DiagnosisContext, lang: 
     };
   });
   return { perspectives, sections };
+}
+
+// ---- 回答から求める独自の16タイプ ----
+
+const DIMS: { dim: string; pos: string; neg: string; traits: TraitId[]; theme: ThemeId }[] = [
+  { dim: 'EI', pos: 'E', neg: 'I', traits: ['self_energy', 'rel_circle'], theme: 'self' },
+  { dim: 'NS', pos: 'N', neg: 'S', traits: ['life_mode'], theme: 'life' },
+  { dim: 'FT', pos: 'F', neg: 'T', traits: ['self_decide'], theme: 'self' },
+  { dim: 'JP', pos: 'J', neg: 'P', traits: ['work_structure'], theme: 'work' },
+];
+
+export interface DerivedType {
+  /** 4つすべて回答から決まったときだけ */
+  code: string | null;
+  letters: { dim: string; letter: string | null; strength: number; theme: ThemeId }[];
+}
+
+/** あなたの回答だけから求める16タイプ（独自の判定。公式の診断とは関係ない） */
+export function derivedType16(ctx: DiagnosisContext): DerivedType {
+  const letters = DIMS.map((d) => {
+    const vals = d.traits.map((t) => ctx.traits[t].self).filter((v): v is number => v !== null);
+    if (vals.length === 0) return { dim: d.dim, letter: null, strength: 0, theme: d.theme };
+    const v = vals.reduce((a, b) => a + b, 0) / vals.length;
+    // 中間（0付近）のときは、占術の仮説で軽く補う
+    const tie = Math.abs(v) < 0.1 ? d.traits.reduce((a, t) => a + ctx.traits[t].prior, 0) : v;
+    return { dim: d.dim, letter: tie >= 0 ? d.pos : d.neg, strength: Math.round(Math.abs(v) * 100), theme: d.theme };
+  });
+  // E/I・N/S・F/T・J/P の順なので、そのまま一般的な4文字表記になる
+  const code = letters.every((l) => l.letter) ? letters.map((l) => l.letter).join('') : null;
+  return { code, letters };
 }
