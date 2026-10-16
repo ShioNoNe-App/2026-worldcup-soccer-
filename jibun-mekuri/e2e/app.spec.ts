@@ -5,7 +5,7 @@ async function noHorizontalScroll(page: Page) {
   expect(overflow, 'ページが横にはみ出していない').toBeLessThanOrEqual(0);
 }
 
-async function onboard(page: Page, opts: { style?: 'pop' | 'chic' | 'game' | 'skip'; themes?: string[] } = {}) {
+async function onboard(page: Page, opts: { style?: 'pop' | 'chic' | 'game' | 'fairy' | 'skip'; themes?: string[] } = {}) {
   await page.goto('/');
   await page.getByRole('button', { name: '占いをはじめる' }).click();
   if (!opts.style || opts.style === 'skip') {
@@ -101,8 +101,8 @@ test('B: スタイルを切り替えられ、再読み込み後も保持され�
   // 色だけでなく、フォント・角丸も変わる
   const chicFont = await page.evaluate(() => getComputedStyle(document.body).fontFamily);
   expect(chicFont).not.toBe(popFont);
-  const radius = await page.locator('.card').first().evaluate((el) => getComputedStyle(el).borderTopLeftRadius);
-  expect(radius).toBe('6px');
+  // ノワの世界観: 暗い背景・明るい文字
+  await expect.poll(() => page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(11, 15, 30)');
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('data-style', 'chic');
   await expect(page.getByRole('heading', { name: '設定' }).or(page.getByText('UIスタイル'))).toBeVisible();
@@ -435,32 +435,53 @@ test('今日の3問・お世話・親密度が動き、再読み込み後も保�
   await page.getByTestId('care-feed').click();
   await page.getByTestId('care-feed').click();
   await expect(page.locator('.partner-bubble')).toContainText('満足');
-  // キャラを切り替えられる（メクリンは未解放）
-  await expect(page.getByTestId('partner-mekurin')).toBeDisabled();
-  await page.getByTestId('partner-noir').click();
-  await expect(page.getByRole('heading', { name: 'ノワ' })).toBeVisible();
+  // ホームにはキャラ切り替えUIを置かない
+  await expect(page.getByTestId('partner-noir')).toHaveCount(0);
   await page.reload();
-  await expect(page.getByRole('heading', { name: 'ノワ' })).toBeVisible();
-  await page.getByTestId('partner-pom').click();
   await expect(stage).toContainText('Lv.2');
 });
 
-test('基本の質問にすべて答えるとメクリンが解放され、保存される', async ({ page }) => {
-  await onboard(page, { themes: ['self'] });
-  await page.getByRole('button', { name: 'めくる', exact: true }).click();
-  await expect(page.getByTestId('mekurin-progress')).toContainText('0 / 14');
-  await page.getByTestId('mekurin-start').click();
-  for (let i = 0; i < 14; i++) {
-    if (await page.getByTestId('run-done').isVisible()) break;
-    await page.locator('.options .option').first().click();
-    await page.getByTestId('confirm-answer').click();
+
+
+test('キャラクターを選ぶとアプリ全体の世界観が変わり、移動・再読み込み後も一致する', async ({ page }) => {
+  const looks: Record<string, string> = {};
+  for (const [style, name] of [['chic', 'ノワ'], ['game', 'コロ'], ['fairy', 'メクリン']] as const) {
+    await page.goto('/');
+    await page.evaluate(() => localStorage.clear());
+    await onboard(page, { style, themes: ['self'] });
+    await expect(page.locator('html')).toHaveAttribute('data-style', style);
+    await page.getByRole('button', { name: 'めくる', exact: true }).click();
+    await expect(page.getByRole('heading', { name, exact: true })).toBeVisible();
+    await expect(page.locator(`img.character-img[data-char]`).first()).toBeVisible();
+    await page.waitForTimeout(400);
+    looks[style] = await page.evaluate(() => {
+      const card = document.querySelector('.card')!;
+      const cs = getComputedStyle(card);
+      return [getComputedStyle(document.body).backgroundColor, cs.borderTopWidth, cs.borderTopLeftRadius, getComputedStyle(document.body).fontFamily].join('|');
+    });
+    // 別画面・再読み込みでも同じ世界観
+    await page.getByRole('navigation', { name: 'メインメニュー' }).getByRole('button', { name: 'じぶんマップ' }).click();
+    await expect(page.locator('html')).toHaveAttribute('data-style', style);
+    await page.reload();
+    await expect(page.locator('html')).toHaveAttribute('data-style', style);
+    await noHorizontalScroll(page);
   }
-  await expect(page.getByRole('dialog')).toContainText('ひみつのキャラクターが現れた！');
-  await page.getByRole('button', { name: 'メクリンと一緒にいる' }).click();
-  await page.getByRole('button', { name: 'ホームにもどる' }).click();
-  await expect(page.getByRole('heading', { name: 'メクリン' })).toBeVisible();
-  await expect(page.getByTestId('mekurin-card')).toHaveCount(0);
+  expect(new Set(Object.values(looks)).size).toBe(3);
+});
+
+test('血液型（おまけ）: 未回答・回答・変更・再表示', async ({ page }) => {
+  await onboard(page, { themes: ['self'] });
+  await page.getByRole('button', { name: /血液型で、どんな傾向がある/ }).click();
+  const blood = page.getByTestId('blood');
+  await expect(blood).toContainText('科学的に確立されたものではありません');
+  await expect(page.getByTestId('blood-result')).toHaveCount(0);
+  await page.getByRole('radio', { name: 'O型' }).click();
+  await expect(page.getByTestId('blood-result')).toContainText('O型のあなた');
+  await expect(page.getByTestId('blood-result')).toContainText('振り返ってみよう');
   await page.reload();
-  await expect(page.getByRole('heading', { name: 'メクリン' })).toBeVisible();
-  await expect(page.getByTestId('partner-mekurin')).toBeEnabled();
+  await expect(page.getByTestId('blood-result')).toContainText('O型のあなた');
+  await page.getByTestId('blood-change').click();
+  await page.getByRole('radio', { name: 'わからない' }).click();
+  await expect(page.getByTestId('blood-result')).not.toContainText(/[ABO]+型のあなた/);
+  await expect(page.getByTestId('blood-result')).toContainText('わからない');
 });

@@ -43,7 +43,17 @@ const JA: Record<StyleId, Voice> = {
     greeting: '次はどのステージに行く？',
     welcomeBack: 'おかえり！冒険のつづきから',
     sectionNum: (n) => `STAGE ${n}`,
-    remaining: (n) => (n <= 1 ? 'ラスト1問！' : `あと${n}問でクリア！`),
+    remaining: (n) => (n <= 1 ? 'ラストミッション！' : `MISSION あと${n}問`),
+  },
+  fairy: {
+    next: '次へ',
+    reactions: ['なるほど、ひとつ見えたね。', 'うん、覚えておくね。', 'その答え、きれいだね。', 'ゆっくりで大丈夫。'],
+    discovery: (k) => `ひとつ発見：「${k}」`,
+    topicDone: '見つけたことを、まとめておいたよ。',
+    greeting: '今日は、何を見つけにいく？',
+    welcomeBack: 'おかえり。続きから見ていこう。',
+    sectionNum: (n) => String(n).padStart(2, '0'),
+    remaining: (n) => (n <= 1 ? 'あと1問だよ' : `あと${n}問`),
   },
 };
 
@@ -76,7 +86,17 @@ const EN: Record<StyleId, Voice> = {
     greeting: 'Which stage is next?',
     welcomeBack: 'Welcome back! Your adventure continues',
     sectionNum: (n) => `STAGE ${n}`,
-    remaining: (n) => (n <= 1 ? 'Last question!' : `${n} more to clear!`),
+    remaining: (n) => (n <= 1 ? 'Final mission!' : `MISSION: ${n} left`),
+  },
+  fairy: {
+    next: 'Next',
+    reactions: ['I see — one more thing found.', 'I’ll remember that.', 'What a clear answer.', 'Take your time.'],
+    discovery: (k) => `Found: “${k}”`,
+    topicDone: 'Here’s what we found together.',
+    greeting: 'What shall we discover today?',
+    welcomeBack: 'Welcome back. Let’s continue.',
+    sectionNum: (n) => String(n).padStart(2, '0'),
+    remaining: (n) => (n <= 1 ? 'Just one more' : `${n} to go`),
   },
 };
 

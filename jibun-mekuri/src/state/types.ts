@@ -1,10 +1,11 @@
 import type { Pillar } from '../engine/bazi/constants';
 import type { Answers, ThemeId, TraitId } from '../engine/diagnosis/types';
 import type { Lang } from '../i18n/lang';
+import type { BloodAnswer } from '../content/blood';
 
-export type StyleId = 'pop' | 'chic' | 'game';
+export type StyleId = 'pop' | 'chic' | 'game' | 'fairy';
 export type CharId = 'pom' | 'noir' | 'koro' | 'mekurin';
-export const STYLE_IDS: StyleId[] = ['pop', 'chic', 'game'];
+export const STYLE_IDS: StyleId[] = ['pop', 'chic', 'game', 'fairy'];
 export const DEFAULT_STYLE: StyleId = 'pop';
 
 export type Screen =
@@ -64,6 +65,8 @@ export interface AppState {
   /** その日のお世話（1日1回ずつ） */
   care: { date: string; fed: CharId[]; petted: CharId[] };
   mekurinUnlocked: boolean;
+  /** 血液型（エンタメ。診断軸には使わない）。未回答は null */
+  bloodType: BloodAnswer | null;
   /** 今日の3問 */
   daily: { date: string; count: number };
   lastVisit: number | null;
@@ -95,6 +98,7 @@ export function initialState(): AppState {
     care: { date: '', fed: [], petted: [] },
     mekurinUnlocked: false,
     daily: { date: '', count: 0 },
+    bloodType: null,
     lastVisit: null,
   };
 }

@@ -2,13 +2,20 @@
 // - pop: 雲の精「ぽむ」
 // - chic: 大人っぽい黒猫「ノワ」
 // - game: クセのある相棒「コロ」
-// - 隠しキャラ: ページのモンスター「メクリン」
+// - fairy: 知的な妖精「メクリン」
+// ノワ・コロ・メクリンは public/characters/ の正式画像を表示し、SVG は読み込み失敗時の代替。
+import { useState } from 'react';
 import type { ThemeId } from '../engine/diagnosis/types';
 import type { CharId, StyleId } from '../state/types';
 
 export type Mood = 'normal' | 'happy' | 'think' | 'surprise';
 
-export const STYLE_CHAR: Record<StyleId, CharId> = { pop: 'pom', chic: 'noir', game: 'koro' };
+export const STYLE_CHAR: Record<StyleId, CharId> = { pop: 'pom', chic: 'noir', game: 'koro', fairy: 'mekurin' };
+
+/** キャラクター画像のパス（public/characters/。base: './' に合わせて相対パス） */
+export function charImage(who: Exclude<CharId, 'pom'>, kind: 'face' | 'full'): string {
+  return `${import.meta.env.BASE_URL}characters/${who}-${kind}.webp`;
+}
 
 export const CHAR_NAMES: Record<CharId, { ja: string; en: string }> = {
   pom: { ja: 'ぽむちゃん', en: 'Pomu' },
@@ -22,6 +29,7 @@ export const CHARACTER_NAMES: Record<StyleId, { ja: string; en: string }> = {
   pop: CHAR_NAMES.pom,
   chic: CHAR_NAMES.noir,
   game: CHAR_NAMES.koro,
+  fairy: CHAR_NAMES.mekurin,
 };
 
 interface Props {
@@ -39,7 +47,27 @@ interface Props {
 
 export function Character({ styleId, mood = 'normal', theme = null, size = 88, reactKey, className = '', lang = 'ja', charId }: Props) {
   const who = charId ?? STYLE_CHAR[styleId];
-  const anim = reactKey ? (who === 'koro' || who === 'mekurin' ? 'anim-hop' : 'anim-nod') : '';
+  const anim = reactKey ? (who === 'koro' ? 'anim-hop' : 'anim-nod') : '';
+  const [imgFailed, setImgFailed] = useState(false);
+  const label = lang === 'en' ? `${CHAR_NAMES[who].en} (${moodLabelEn(mood)})` : `${CHAR_NAMES[who].ja}（${moodLabel(mood)}）`;
+  // ノワ・コロ・メクリンは正式なキャラクター画像を使う（読み込めないときは従来の SVG を表示）
+  if (who !== 'pom' && !imgFailed) {
+    return (
+      <img
+        key={reactKey}
+        src={charImage(who, size >= 140 ? 'full' : 'face')}
+        alt={label}
+        width={size}
+        height={size}
+        className={`character character-img ${size >= 140 ? 'is-full' : 'is-face'} ${anim} ${className}`}
+        data-mood={mood}
+        data-char={who}
+        loading="lazy"
+        decoding="async"
+        onError={() => setImgFailed(true)}
+      />
+    );
+  }
   return (
     <svg
       key={reactKey}
@@ -48,7 +76,7 @@ export function Character({ styleId, mood = 'normal', theme = null, size = 88, r
       height={size}
       viewBox="0 0 100 100"
       role="img"
-      aria-label={lang === 'en' ? `${CHAR_NAMES[who].en} (${moodLabelEn(mood)})` : `${CHAR_NAMES[who].ja}（${moodLabel(mood)}）`}
+      aria-label={label}
     >
       {who === 'pom' && <Pom mood={mood} />}
       {who === 'noir' && <Noir mood={mood} />}

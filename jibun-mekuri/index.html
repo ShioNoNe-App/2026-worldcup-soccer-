@@ -11,7 +11,7 @@
       // 保存済みのスタイルを描画前に反映して、ちらつきを防ぐ
       try {
         var s = JSON.parse(localStorage.getItem('jibun-mekuri:v1') || 'null');
-        if (s && ['pop', 'chic', 'game'].indexOf(s.style) >= 0) document.documentElement.dataset.style = s.style;
+        if (s && ['pop', 'chic', 'game', 'fairy'].indexOf(s.style) >= 0) document.documentElement.dataset.style = s.style;
         if (s && s.motion === 'reduce') document.documentElement.dataset.motion = 'reduce';
       } catch (e) {}
     </script>

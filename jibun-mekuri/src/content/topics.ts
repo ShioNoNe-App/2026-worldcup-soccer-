@@ -640,6 +640,24 @@ export const TOPICS: TopicDef[] = [
     related: ['decide', 'true_self', 'direction'],
   },
 
+  {
+    id: 'blood',
+    theme: 'self',
+    title: { ja: '血液型でみる傾向', en: 'Blood type fun reading' },
+    ask: { ja: '血液型で、どんな傾向がある？（おまけ）', en: 'What might my blood type say? (just for fun)' },
+    traits: [],
+    maxQuestions: 0,
+    special: 'blood',
+    intro: {
+      kind: 'text',
+      text: {
+        ja: '血液型を選ぶと、楽しめる傾向と、自分を振り返る問いかけを表示します。ほかの診断の結果には影響しません。',
+        en: 'Pick your blood type to see fun tendencies and a question for reflection. It doesn’t affect any other reading.',
+      },
+    },
+    related: ['true_self', 'energy', 'decide_self'],
+  },
+
   // ================= 人生 =================
   {
     id: 'year',

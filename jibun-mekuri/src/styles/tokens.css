@@ -77,139 +77,217 @@
   --accent-soft: #ffebdd;
 }
 
-/* ---------- おしゃれ・自己理解 ---------- */
+/* ---------- ノワ：ダーク・ラグジュアリー（data-style="chic"） ---------- */
 [data-style='chic'] {
   --font-body: 'Noto Sans JP', 'Hiragino Sans', sans-serif;
   --font-heading: 'Noto Serif JP', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
   --heading-weight: 600;
-  --heading-tracking: 0.06em;
+  --heading-tracking: 0.08em;
 
-  --bg: #f6f2e9;
-  --bg-image: linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0) 240px);
-  --surface: #fffdf8;
-  --surface-2: #f1eee4;
-  --text: #2e3a32;
-  --text-muted: #56625a;
-  --line: #ddd7c8;
-  --primary: #4b6a55;
-  --primary-ink: #ffffff;
-  --primary-soft: #e6eee8;
+  --bg: #0b0f1e;
+  --bg-image:
+    radial-gradient(ellipse at 78% -6%, rgba(232, 214, 160, 0.16) 0, transparent 42%),
+    radial-gradient(ellipse at 10% 110%, rgba(54, 72, 140, 0.35) 0, transparent 50%),
+    linear-gradient(180deg, #0b0f1e 0%, #121831 60%, #0b0f1e 100%);
+  --surface: rgba(24, 30, 56, 0.72);
+  --surface-2: rgba(255, 255, 255, 0.06);
+  --text: #ece6d6;
+  --text-muted: #b3ad9f;
+  --line: rgba(212, 184, 120, 0.28);
+  --primary: #d4b878;
+  --primary-ink: #14172a;
+  --primary-soft: rgba(212, 184, 120, 0.14);
 
-  --radius-card: 6px;
-  --radius-btn: 4px;
-  --radius-chip: 3px;
+  --radius-card: 14px;
+  --radius-btn: 999px;
+  --radius-chip: 999px;
   --border-width: 1px;
-  --border-color: #ddd7c8;
-  --shadow-card: none;
-  --shadow-pop: 0 1px 0 #ddd7c8;
+  --border-color: rgba(212, 184, 120, 0.32);
+  --shadow-card: 0 18px 40px rgba(0, 0, 0, 0.45);
+  --shadow-pop: 0 0 0 1px rgba(212, 184, 120, 0.25);
   --shadow-press: none;
-  --focus: #a5492f;
+  --focus: #e8d6a0;
 
-  --accent: #d9785f;
-  --accent-ink: #a5492f;
-  --accent-soft: #f8e6df;
+  --accent: #d4b878;
+  --accent-ink: #e8d6a0;
+  --accent-soft: rgba(212, 184, 120, 0.12);
 
-  --series-me: #a5492f;
-  --series-hyp: #2f6fa3;
-  --chart-grid: #e2ddd0;
+  --series-me: #e8d6a0;
+  --series-hyp: #8fa4e8;
+  --chart-grid: rgba(236, 230, 214, 0.16);
+  --danger: #ff9b8f;
 }
 
 [data-style='chic'][data-accent='love'],
 [data-style='chic'] [data-accent='love'] {
-  --accent: #d9785f;
-  --accent-ink: #a5492f;
-  --accent-soft: #f8e6df;
+  --accent: #d9a3b0;
+  --accent-ink: #f0c7d0;
+  --accent-soft: rgba(217, 163, 176, 0.12);
 }
 [data-style='chic'][data-accent='work'],
 [data-style='chic'] [data-accent='work'] {
-  --accent: #6f8f7a;
-  --accent-ink: #3d5b47;
-  --accent-soft: #e6eee7;
+  --accent: #d4b878;
+  --accent-ink: #e8d6a0;
+  --accent-soft: rgba(212, 184, 120, 0.12);
 }
 [data-style='chic'][data-accent='relations'],
 [data-style='chic'] [data-accent='relations'] {
-  --accent: #d9b95c;
-  --accent-ink: #735a0c;
-  --accent-soft: #f6efd5;
+  --accent: #9fc4b4;
+  --accent-ink: #c6e4d6;
+  --accent-soft: rgba(159, 196, 180, 0.12);
 }
 [data-style='chic'][data-accent='self'],
 [data-style='chic'] [data-accent='self'] {
-  --accent: #8d8ab8;
-  --accent-ink: #4f4c7f;
-  --accent-soft: #ecebf5;
+  --accent: #a7b4ee;
+  --accent-ink: #cad3fb;
+  --accent-soft: rgba(167, 180, 238, 0.12);
 }
 [data-style='chic'][data-accent='life'],
 [data-style='chic'] [data-accent='life'] {
-  --accent: #c98e6a;
-  --accent-ink: #7d4a2a;
-  --accent-soft: #f3e6dc;
+  --accent: #e2b98a;
+  --accent-ink: #f2d4b0;
+  --accent-soft: rgba(226, 185, 138, 0.12);
 }
 
-/* ---------- キャラ・ゲーム ---------- */
+/* ---------- コロ：ゲーム・ポップ（data-style="game"） ---------- */
 [data-style='game'] {
   --font-body: 'M PLUS Rounded 1c', 'Hiragino Maru Gothic ProN', 'Hiragino Sans', sans-serif;
   --font-heading: var(--font-body);
   --heading-weight: 800;
   --heading-tracking: 0.01em;
 
-  --bg: #fff5e3;
-  --bg-image: radial-gradient(rgba(35, 32, 58, 0.08) 1.2px, transparent 1.2px);
-  --bg-size: 18px 18px;
+  --bg: #eef3ff;
+  --bg-image:
+    linear-gradient(rgba(27, 76, 214, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(27, 76, 214, 0.07) 1px, transparent 1px);
+  --bg-size: 24px 24px;
   --surface: #ffffff;
-  --surface-2: #fff1d6;
-  --text: #23203a;
-  --text-muted: #4f4b66;
-  --line: #23203a;
-  --primary: #5b3cc4;
+  --surface-2: #e4ecff;
+  --text: #0d1226;
+  --text-muted: #3a4566;
+  --line: #0d1226;
+  --primary: #1b4cd6;
   --primary-ink: #ffffff;
-  --primary-soft: #ece6ff;
+  --primary-soft: #dfe8ff;
 
-  --radius-card: 18px;
-  --radius-btn: 14px;
-  --radius-chip: 10px;
-  --border-width: 2.5px;
-  --border-color: #23203a;
-  --shadow-card: 4px 4px 0 #23203a;
-  --shadow-pop: 3px 3px 0 #23203a;
-  --shadow-press: 1px 1px 0 #23203a;
-  --focus: #0b6e68;
+  --radius-card: 12px;
+  --radius-btn: 10px;
+  --radius-chip: 6px;
+  --border-width: 3px;
+  --border-color: #0d1226;
+  --shadow-card: 5px 5px 0 #0d1226;
+  --shadow-pop: 0 4px 0 #0d1226;
+  --shadow-press: 0 1px 0 #0d1226;
+  --focus: #00b7ff;
 
-  --accent: #7b5ce0;
-  --accent-ink: #5b3cc4;
-  --accent-soft: #ece6ff;
+  --accent: #1b4cd6;
+  --accent-ink: #1b4cd6;
+  --accent-soft: #dfe8ff;
 
-  --series-me: #5b3cc4;
-  --series-hyp: #d0452f;
-  --chart-grid: #e4dccb;
+  --series-me: #1b4cd6;
+  --series-hyp: #e0157f;
+  --chart-grid: #c6d3f5;
+  --danger: #c4142f;
 }
 
 [data-style='game'][data-accent='love'],
 [data-style='game'] [data-accent='love'] {
-  --accent: #ff6b6b;
-  --accent-ink: #b8283a;
-  --accent-soft: #ffe3e3;
+  --accent: #ff3d8b;
+  --accent-ink: #c4006a;
+  --accent-soft: #ffe1ef;
 }
 [data-style='game'][data-accent='work'],
 [data-style='game'] [data-accent='work'] {
-  --accent: #1fb5ad;
-  --accent-ink: #0b6660;
-  --accent-soft: #d7f5f3;
+  --accent: #1b4cd6;
+  --accent-ink: #1b4cd6;
+  --accent-soft: #dfe8ff;
 }
 [data-style='game'][data-accent='relations'],
 [data-style='game'] [data-accent='relations'] {
-  --accent: #ffc93c;
-  --accent-ink: #6e4d00;
-  --accent-soft: #fff1c7;
+  --accent: #00c2a8;
+  --accent-ink: #007a69;
+  --accent-soft: #d6faf4;
 }
 [data-style='game'][data-accent='self'],
 [data-style='game'] [data-accent='self'] {
-  --accent: #7b5ce0;
-  --accent-ink: #5b3cc4;
-  --accent-soft: #ece6ff;
+  --accent: #7a3cff;
+  --accent-ink: #5a1fe0;
+  --accent-soft: #ece3ff;
 }
 [data-style='game'][data-accent='life'],
 [data-style='game'] [data-accent='life'] {
-  --accent: #ff9f43;
-  --accent-ink: #994700;
-  --accent-soft: #ffe8d1;
+  --accent: #ffb300;
+  --accent-ink: #8a5a00;
+  --accent-soft: #fff1c9;
+}
+
+/* ---------- メクリン：知的・幻想的・ミニマル（data-style="fairy"） ---------- */
+[data-style='fairy'] {
+  --font-body: 'Noto Sans JP', 'Hiragino Sans', sans-serif;
+  --font-heading: var(--font-body);
+  --heading-weight: 500;
+  --heading-tracking: 0.05em;
+
+  --bg: #fbfaff;
+  --bg-image:
+    radial-gradient(ellipse at 15% 0%, rgba(206, 192, 245, 0.45) 0, transparent 45%),
+    radial-gradient(ellipse at 95% 35%, rgba(187, 236, 220, 0.5) 0, transparent 45%),
+    linear-gradient(180deg, #fbfaff, #f5fbf9);
+  --surface: rgba(255, 255, 255, 0.82);
+  --surface-2: #f3f0fb;
+  --text: #34324a;
+  --text-muted: #5f5d78;
+  --line: #e3def3;
+  --primary: #6c5fb8;
+  --primary-ink: #ffffff;
+  --primary-soft: #efecfb;
+
+  --radius-card: 22px;
+  --radius-btn: 999px;
+  --radius-chip: 999px;
+  --border-width: 1px;
+  --border-color: #e6e1f4;
+  --shadow-card: 0 8px 30px rgba(108, 95, 184, 0.08);
+  --shadow-pop: 0 2px 10px rgba(108, 95, 184, 0.12);
+  --shadow-press: none;
+  --focus: #6c5fb8;
+
+  --accent: #9b8fe0;
+  --accent-ink: #5a4fa6;
+  --accent-soft: #f0edfc;
+
+  --series-me: #5a4fa6;
+  --series-hyp: #1f8f78;
+  --chart-grid: #e6e1f4;
+}
+
+[data-style='fairy'][data-accent='love'],
+[data-style='fairy'] [data-accent='love'] {
+  --accent: #e3a6c8;
+  --accent-ink: #9a3f73;
+  --accent-soft: #fbeef5;
+}
+[data-style='fairy'][data-accent='work'],
+[data-style='fairy'] [data-accent='work'] {
+  --accent: #8fd3c0;
+  --accent-ink: #1f7a66;
+  --accent-soft: #eaf8f3;
+}
+[data-style='fairy'][data-accent='relations'],
+[data-style='fairy'] [data-accent='relations'] {
+  --accent: #b9d78f;
+  --accent-ink: #4f6e1f;
+  --accent-soft: #f2f8e8;
+}
+[data-style='fairy'][data-accent='self'],
+[data-style='fairy'] [data-accent='self'] {
+  --accent: #9b8fe0;
+  --accent-ink: #5a4fa6;
+  --accent-soft: #f0edfc;
+}
+[data-style='fairy'][data-accent='life'],
+[data-style='fairy'] [data-accent='life'] {
+  --accent: #a9c7ee;
+  --accent-ink: #2f5c93;
+  --accent-soft: #edf4fd;
 }

@@ -9,6 +9,7 @@ const loaders: Record<StyleId, () => Promise<unknown>> = {
       import('@fontsource/noto-sans-jp/700.css'),
       import('@fontsource/noto-serif-jp/600.css'),
     ]),
+  fairy: () => Promise.all([import('@fontsource/noto-sans-jp/400.css'), import('@fontsource/noto-sans-jp/700.css')]),
   game: () => Promise.all([import('@fontsource/m-plus-rounded-1c/500.css'), import('@fontsource/m-plus-rounded-1c/800.css')]),
 };
 

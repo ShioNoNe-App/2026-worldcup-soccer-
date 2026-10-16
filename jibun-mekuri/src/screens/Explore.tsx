@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { DailyCard, MekurinCard, PartnerCard, PartnerCharacter } from '../ui/Companion';
+import { DailyCard, PartnerCard, PartnerCharacter } from '../ui/Companion';
 import { BirthInputError, computeFourPillars } from '../engine/bazi/calendar';
 import {
   answeredInTopic,
@@ -13,6 +13,7 @@ import {
 import { composeCompat, composeTopicResult, composeYearReadings, topicIntro } from '../engine/diagnosis/result';
 import type { PointKind, PointSource, ThemeId, TraitStatus } from '../engine/diagnosis/types';
 import { dmText, localizeQuestion, pick, traitText } from '../content/localize';
+import { BLOOD, BLOOD_DISCLAIMER, BLOOD_TYPES, type BloodAnswer } from '../content/blood';
 import { THEME_BY_ID, THEMES, TOPIC_BY_ID, topicsOfTheme } from '../content/topics';
 import { traitsOfTheme } from '../content/traits';
 import type { Lang } from '../i18n/lang';
@@ -124,8 +125,6 @@ export function Home() {
             {T('じぶんマップを見る', 'See my map')}
           </button>
         </div>
-
-        <MekurinCard />
 
         <div className="section-head">
           <h2>{T('えらんだテーマ', 'Your themes')}</h2>
@@ -299,7 +298,7 @@ export function TopicScreen() {
   const q = topic && diag && !done ? nextQuestion(topic.id, diag) : null;
 
   const needsCompatForm = topic?.special === 'compat' && !state.compat && !compatSkipped && !done;
-  const showResult = Boolean(topic && diag && !needsCompatForm && (done || !q));
+  const showResult = Boolean(topic && diag && topic.special !== 'blood' && !needsCompatForm && (done || !q));
 
   useEffect(() => {
     if (topic && showResult && !done) dispatch({ type: 'completeTopic', topic: topic.id });
@@ -316,6 +315,16 @@ export function TopicScreen() {
   }, [q?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!topic || !chart || !diag) return null;
+  if (topic.special === 'blood') {
+    return (
+      <>
+        <TopBar title={pick(topic.title, lang)} onBack={() => dispatch({ type: 'go', screen: 'theme', theme: topic.theme })} />
+        <main className="main" data-accent={topic.theme}>
+          <BloodPanel />
+        </main>
+      </>
+    );
+  }
 
   const answered = answeredInTopic(topic.id, state.answers);
   const remaining = remainingQuestions(topic.id, diag);
@@ -621,5 +630,89 @@ function CompatPanel({ showForm, onSkip }: { showForm: boolean; onSkip: () => vo
         {T('わからない・入力しないで進む', 'I don’t know / continue without it')}
       </button>
     </form>
+  );
+}
+
+// ============ 血液型（おまけ） ============
+
+function BloodPanel() {
+  const { state, dispatch } = useApp();
+  const T = useT();
+  const lang = state.lang;
+  const answer = state.bloodType;
+  const [editing, setEditing] = useState(answer === null);
+  const result = answer && answer !== 'unknown' && answer !== 'skip' ? BLOOD[answer] : null;
+  const options: { id: BloodAnswer; label: string }[] = [
+    ...BLOOD_TYPES.map((b) => ({ id: b as BloodAnswer, label: T(`${b}型`, `Type ${b}`) })),
+    { id: 'unknown', label: T('わからない', 'I don’t know') },
+    { id: 'skip', label: T('回答しない', 'Prefer not to answer') },
+  ];
+  return (
+    <div className="stack" style={{ marginTop: 8 }} data-testid="blood">
+      <p className="alert" style={{ margin: 0 }}>
+        {pick(BLOOD_DISCLAIMER, lang)}
+      </p>
+      {editing ? (
+        <div className="card">
+          <h2>{T('あなたの血液型は？', 'What’s your blood type?')}</h2>
+          <p className="small muted">{T('ほかの診断の結果やスコアには影響しません。', 'This won’t change any other result or score.')}</p>
+          <div className="options" role="radiogroup" aria-label={T('血液型', 'Blood type')}>
+            {options.map((o) => (
+              <button
+                key={o.id}
+                type="button"
+                role="radio"
+                aria-checked={answer === o.id}
+                className={`option ${o.id === 'unknown' || o.id === 'skip' ? 'is-special' : ''}`}
+                onClick={() => {
+                  dispatch({ type: 'setBlood', blood: o.id });
+                  setEditing(false);
+                }}
+              >
+                <span className="mark" aria-hidden="true">
+                  {answer === o.id ? '✓' : ''}
+                </span>
+                {o.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="card anim-flip" data-testid="blood-result">
+          {result && answer ? (
+            <>
+              <SectionLabel>{T(`${answer}型のあなた`, `You, type ${answer}`)}</SectionLabel>
+              <h2>{pick(result.title, lang)}</h2>
+              <ul className="points">
+                {result.tendencies.map((t) => (
+                  <li className="point" key={t.ja}>
+                    <span className="point-icon" aria-hidden="true">
+                      ✎
+                    </span>
+                    <p>{pick(t, lang)}</p>
+                  </li>
+                ))}
+              </ul>
+              <p style={{ marginTop: 12 }}>
+                <strong>{T('振り返ってみよう：', 'Reflect: ')}</strong>
+                {pick(result.reflect, lang)}
+              </p>
+              <p className="small muted" style={{ marginBottom: 0 }}>
+                {T('当てはまるところ・当てはまらないところ、両方あって大丈夫です。', 'It’s fine if some of this fits and some doesn’t.')}
+              </p>
+            </>
+          ) : (
+            <p style={{ margin: 0 }}>
+              {answer === 'skip'
+                ? T('回答しないを選びました。血液型の結果は表示しません。', 'You chose not to answer, so no blood type result is shown.')
+                : T('わからない、を選びました。わかったら、いつでも選びなおせます。', 'You chose “I don’t know.” You can pick again anytime.')}
+            </p>
+          )}
+          <button type="button" className="btn btn-secondary" style={{ marginTop: 12 }} onClick={() => setEditing(true)} data-testid="blood-change">
+            {T('血液型を選びなおす', 'Change blood type')}
+          </button>
+        </div>
+      )}
+    </div>
   );
 }

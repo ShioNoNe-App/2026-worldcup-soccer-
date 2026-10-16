@@ -58,8 +58,6 @@ export function PartnerCard() {
     }
   };
 
-  const chars: CharId[] = ['pom', 'noir', 'koro', 'mekurin'];
-
   return (
     <section className="card partner-card anim-rise" data-testid="partner-card" aria-labelledby="partner-name">
       <div className="partner-main">
@@ -91,32 +89,6 @@ export function PartnerCard() {
         <button type="button" className="btn btn-secondary" onClick={() => doCare('pet')} data-testid="care-pet">
           <span aria-hidden="true">✋</span> {T('なでる', 'Pet')}
         </button>
-      </div>
-      <div className="partner-switch" role="radiogroup" aria-label={T('一緒にいるキャラ', 'Your companion')}>
-        {chars.map((c) => {
-          const locked = c === 'mekurin' && !state.mekurinUnlocked;
-          return (
-            <button
-              key={c}
-              type="button"
-              role="radio"
-              aria-checked={partner === c}
-              disabled={locked}
-              className="partner-chip"
-              onClick={() => dispatch({ type: 'setPartner', partner: c })}
-              data-testid={`partner-${c}`}
-            >
-              {locked ? (
-                <span className="partner-locked" aria-hidden="true">
-                  ？
-                </span>
-              ) : (
-                <Character styleId={state.style} charId={c} size={36} lang={lang} />
-              )}
-              <span>{locked ? '？？？' : pick(CHAR_NAMES[c], lang)}</span>
-            </button>
-          );
-        })}
       </div>
     </section>
   );

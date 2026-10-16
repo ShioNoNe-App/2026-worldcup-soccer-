@@ -7,7 +7,7 @@ import { reducer, type Action } from './reducer';
 import { clearState, loadState, saveState } from './storage';
 import type { AppState, CharId } from './types';
 import { partnerOf } from './reducer';
-import { COMPANIONS, mekurinProgress, stageOf } from '../content/companion';
+import { COMPANIONS, stageOf } from '../content/companion';
 import { loadStyleFonts } from '../ui/fonts';
 
 export interface Toast {
@@ -84,12 +84,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     lastStage.current = { who: partner, stage };
   }, [partner, points, state.lang]);
 
-  useEffect(() => {
-    if (!state.mekurinUnlocked && state.profile && mekurinProgress(state.answers).remaining.length === 0) {
-      dispatch({ type: 'unlockMekurin' });
-      setCelebration({ kind: 'mekurin', who: 'mekurin', stage: 0 });
-    }
-  }, [state.answers, state.mekurinUnlocked, state.profile]);
 
   useEffect(() => {
     const onHide = () => dispatch({ type: 'visited', at: Date.now() });

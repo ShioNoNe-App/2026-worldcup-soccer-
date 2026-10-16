@@ -243,7 +243,7 @@ select {
 }
 
 .btn-danger {
-  background: #b3261e;
+  background: var(--danger, #b3261e);
   color: #fff;
 }
 
@@ -1139,7 +1139,7 @@ details.note summary {
 }
 
 .error {
-  color: #b3261e;
+  color: var(--danger, #b3261e);
   font-weight: 700;
   font-size: 0.9rem;
 }
@@ -1932,4 +1932,264 @@ li {
 
 .partner-chip span:last-child {
   white-space: nowrap;
+}
+
+/* =================================================================
+ * キャラクター別の世界観（共通トークンに加えて、構造の違いをここで定義）
+ * ================================================================= */
+
+/* キャラクター画像 */
+.character-img {
+  display: block;
+  flex-shrink: 0;
+  object-fit: cover;
+  background: var(--surface-2);
+}
+.character-img.is-face {
+  border-radius: 50%;
+}
+.character-img.is-full {
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  background: transparent;
+}
+.character-img[data-mood='happy'] {
+  transform: scale(1.03);
+}
+
+/* ---------- ノワ：ダーク・ラグジュアリー ---------- */
+[data-style='chic'] body,
+body:where([data-style='chic'] *) {
+  color-scheme: dark;
+}
+[data-style='chic'] .card,
+[data-style='chic'] .select-card,
+[data-style='chic'] .dialog,
+[data-style='chic'] .toast {
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+[data-style='chic'] .card {
+  border-top-color: rgba(232, 214, 160, 0.55);
+}
+[data-style='chic'] .btn {
+  background: linear-gradient(180deg, #e8d6a0, #c3a462);
+  color: #14172a;
+  letter-spacing: 0.08em;
+}
+[data-style='chic'] .btn-secondary {
+  background: transparent;
+  color: var(--accent-ink);
+  border-color: var(--border-color);
+}
+[data-style='chic'] .btn-accent {
+  background: linear-gradient(180deg, #e8d6a0, #c3a462);
+  color: #14172a;
+}
+[data-style='chic'] .btn-danger {
+  background: transparent;
+  color: var(--danger);
+  border-color: var(--danger);
+}
+[data-style='chic'] .option {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+}
+[data-style='chic'] .option[aria-checked='true'] {
+  background: rgba(212, 184, 120, 0.14);
+}
+[data-style='chic'] .input,
+[data-style='chic'] .select {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+}
+[data-style='chic'] .select option {
+  background: #121831;
+  color: #ece6d6;
+}
+[data-style='chic'] .app-header {
+  background: rgba(11, 15, 30, 0.82);
+}
+[data-style='chic'] .dialog-backdrop {
+  background: rgba(3, 5, 12, 0.7);
+}
+[data-style='chic'] .dialog {
+  background: rgba(18, 24, 49, 0.96);
+}
+[data-style='chic'] .character-img.is-face {
+  box-shadow: 0 0 0 1px rgba(232, 214, 160, 0.6), 0 0 24px rgba(232, 214, 160, 0.18);
+}
+[data-style='chic'] .bubble {
+  color: var(--text);
+}
+[data-style='chic'] .keyword-pop,
+[data-style='chic'] .remain-pop {
+  color: #14172a;
+}
+[data-style='chic'] .anim-rise,
+[data-style='chic'] .anim-flip {
+  animation: fade 0.9s ease both;
+}
+[data-style='chic'] .bar-fill,
+[data-style='chic'] .remain-fill,
+[data-style='chic'] .level-fill {
+  background: linear-gradient(90deg, #c3a462, #e8d6a0);
+}
+
+/* ---------- コロ：ゲーム・ポップ ---------- */
+[data-style='game'] h1 {
+  font-size: 2rem;
+  letter-spacing: 0.02em;
+}
+[data-style='game'] h2 {
+  font-size: 1.45rem;
+}
+[data-style='game'] .card-label,
+[data-style='game'] [data-accent] .card-label {
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+[data-style='game'] [data-accent='life'] .card-label,
+[data-style='game'] [data-accent='relations'] .card-label,
+[data-style='game'][data-accent='life'] .card-label,
+[data-style='game'][data-accent='relations'] .card-label {
+  color: #0d1226;
+}
+[data-style='game'] .btn {
+  box-shadow: 0 5px 0 #0d1226;
+  transform: translateY(-2px);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+[data-style='game'] .btn:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 0 0 #0d1226;
+}
+[data-style='game'] .btn-accent {
+  background: #1b4cd6;
+}
+[data-style='game'] .option {
+  border-width: 3px;
+  font-weight: 700;
+}
+[data-style='game'] .option:hover {
+  box-shadow: 0 0 0 3px #00e5ff;
+}
+[data-style='game'] .option[aria-checked='true'] {
+  background: #1b4cd6;
+  color: #fff;
+  border-color: #0d1226;
+}
+[data-style='game'] .option[aria-checked='true'] .mark {
+  background: #00e5ff;
+  border-color: #0d1226;
+  color: #0d1226;
+}
+[data-style='game'] .remain {
+  background: #0d1226;
+  color: #fff;
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+[data-style='game'] .remain-step {
+  color: #9fb4ff;
+}
+[data-style='game'] .remain-pop {
+  background: #00e5ff;
+  color: #0d1226;
+}
+[data-style='game'] .remain-track,
+[data-style='game'] .level-bar,
+[data-style='game'] .meter-track,
+[data-style='game'] .bar-track {
+  background: repeating-linear-gradient(90deg, #dfe8ff 0 10px, #c6d3f5 10px 12px);
+}
+[data-style='game'] .remain-fill,
+[data-style='game'] .level-fill,
+[data-style='game'] .bar-fill {
+  background: repeating-linear-gradient(90deg, #00e5ff 0 10px, #1b4cd6 10px 12px);
+}
+[data-style='game'] .character-img.is-face {
+  border-radius: 14px;
+  border: 3px solid #0d1226;
+  box-shadow: 3px 3px 0 #0d1226;
+}
+[data-style='game'] .app-header {
+  background: #0d1226;
+  color: #fff;
+  border-bottom: 3px solid #00e5ff;
+}
+[data-style='game'] .app-header .nav-btn {
+  color: #9fb4ff;
+}
+[data-style='game'] .app-header .nav-btn[aria-current='page'] {
+  color: #0d1226;
+  background: #00e5ff;
+}
+[data-style='game'] .app-header .icon-btn,
+[data-style='game'] .app-header .lang-btn {
+  background: #1b2347;
+  color: #fff;
+  border-color: #00e5ff;
+}
+[data-style='game'] .topbar-title,
+[data-style='game'] .brand {
+  color: #fff;
+}
+[data-style='game'] .anim-rise {
+  animation: pop 0.3s ease-out both;
+}
+
+/* ---------- メクリン：知的・幻想的・ミニマル ---------- */
+[data-style='fairy'] body {
+  letter-spacing: 0.02em;
+}
+[data-style='fairy'] .card {
+  padding: 24px;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+[data-style='fairy'] .card-label {
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  color: var(--text-muted);
+}
+[data-style='fairy'] .card-label::before {
+  content: '✧';
+  margin-right: 4px;
+  color: var(--accent);
+}
+[data-style='fairy'] .btn {
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  box-shadow: 0 6px 20px rgba(108, 95, 184, 0.22);
+}
+[data-style='fairy'] .btn-secondary {
+  box-shadow: none;
+}
+[data-style='fairy'] .option {
+  border-radius: 999px;
+  padding-left: 20px;
+  font-weight: 400;
+}
+[data-style='fairy'] .option[aria-checked='true'] {
+  background: linear-gradient(90deg, #f0edfc, #eaf8f3);
+}
+[data-style='fairy'] .bubble {
+  border-radius: 20px;
+  box-shadow: none;
+}
+[data-style='fairy'] .character-img.is-face {
+  box-shadow: 0 0 0 4px #fff, 0 0 26px rgba(155, 143, 224, 0.35);
+}
+[data-style='fairy'] .anim-rise,
+[data-style='fairy'] .anim-flip {
+  animation: rise 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+[data-style='fairy'] .bar-fill,
+[data-style='fairy'] .remain-fill,
+[data-style='fairy'] .level-fill {
+  background: linear-gradient(90deg, #9b8fe0, #8fd3c0);
 }

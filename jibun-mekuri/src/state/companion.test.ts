@@ -24,13 +24,34 @@ describe('親密度', () => {
     expect(s.intimacy.pom).toBe(INTIMACY.answer);
   });
 
-  it('一緒にいるキャラに加算され、スタイルを変えると標準キャラが変わる', () => {
+  it('キャラは選んだ世界観と一致し、そのキャラに加算される', () => {
     let s = reducer(initialState(), { type: 'setStyle', style: 'chic' });
+    expect(partnerOf(s)).toBe('noir');
     s = answer(s, 'work_pace');
     expect(s.intimacy.noir).toBe(INTIMACY.answer);
-    s = reducer(s, { type: 'setPartner', partner: 'koro' });
+    s = reducer(s, { type: 'setStyle', style: 'fairy' });
+    expect(partnerOf(s)).toBe('mekurin');
+    s = reducer(s, { type: 'setPartner', partner: 'koro' }); // 世界観とずれる指定は無視される
+    expect(partnerOf(s)).toBe('mekurin');
     s = answer(s, 'work_drive');
-    expect(s.intimacy.koro).toBe(INTIMACY.answer);
+    expect(s.intimacy.mekurin).toBe(INTIMACY.answer);
+    expect(s.answers.work_pace).toBeDefined(); // 世界観を変えても回答は消えない
+  });
+
+  it('血液型は保存・変更でき、診断の回答や仮説には影響しない', () => {
+    localStorage.clear();
+    let s = reducer(initialState(), { type: 'setProfile', profile: { birthDate: '1995-08-17', birthTime: null } });
+    s = answer(s, 'love_pace');
+    const before = buildContext(analyzeBirth({ date: '1995-08-17', time: null }), s.answers);
+    s = reducer(s, { type: 'setBlood', blood: 'AB' });
+    expect(Object.keys(s.answers)).toEqual(['love_pace']);
+    saveState(s);
+    expect(loadState().state.bloodType).toBe('AB');
+    s = reducer(s, { type: 'setBlood', blood: 'unknown' });
+    expect(s.bloodType).toBe('unknown');
+    const after = buildContext(analyzeBirth({ date: '1995-08-17', time: null }), s.answers);
+    expect(after.traits).toEqual(before.traits);
+    expect(initialState().bloodType).toBeNull();
   });
 
   it('ごはん・なでるは1日1回ずつ', () => {
@@ -66,7 +87,6 @@ describe('メクリンの解放', () => {
     expect(mekurinProgress(s.answers).remaining).toHaveLength(1);
     s = reducer(s, { type: 'unlockMekurin' });
     expect(s.mekurinUnlocked).toBe(false);
-    expect(reducer(s, { type: 'setPartner', partner: 'mekurin' }).partner).toBeNull();
     s = answer(s, MEKURIN_QUESTIONS[MEKURIN_QUESTIONS.length - 1]);
     s = reducer(s, { type: 'unlockMekurin' });
     expect(s.mekurinUnlocked).toBe(true);

@@ -3,6 +3,7 @@ import type { ThemeId, TraitId } from '../engine/diagnosis/types';
 import type { Lang } from '../i18n/lang';
 import { TOPIC_BY_ID } from '../content/topics';
 import { mekurinProgress } from '../content/companion';
+import type { BloodAnswer } from '../content/blood';
 import { initialState, type AppState, type CharId, type Profile, type Screen, type StyleId } from './types';
 
 export type Action =
@@ -17,6 +18,7 @@ export type Action =
   | { type: 'care'; kind: 'feed' | 'pet'; date: string }
   | { type: 'setPartner'; partner: CharId }
   | { type: 'unlockMekurin' }
+  | { type: 'setBlood'; blood: BloodAnswer | null }
   | { type: 'undoAnswer'; questionId: string }
   | { type: 'setThemes'; themes: ThemeId[] }
   | { type: 'setLang'; lang: Lang }
@@ -35,10 +37,11 @@ export type Action =
 /** 親密度の増え方（ここで一元管理） */
 export const INTIMACY = { answer: 2, care: 1 };
 
-const STYLE_DEFAULT: Record<string, CharId> = { pop: 'pom', chic: 'noir', game: 'koro' };
+const STYLE_DEFAULT: Record<string, CharId> = { pop: 'pom', chic: 'noir', game: 'koro', fairy: 'mekurin' };
 
+/** 一緒にいるキャラは、選んだ世界観（スタイル）と常に一致する */
 export function partnerOf(state: AppState): CharId {
-  return state.partner ?? STYLE_DEFAULT[state.style] ?? 'pom';
+  return STYLE_DEFAULT[state.style] ?? 'pom';
 }
 
 /** 回答を記録したトピックのテーマ（'theme:love' のようなテーマ入口の質問も含む） */
@@ -123,6 +126,8 @@ export function reducer(state: AppState, action: Action): AppState {
         intimacy: { ...state.intimacy, [who]: (state.intimacy[who] ?? 0) + INTIMACY.care },
       };
     }
+    case 'setBlood':
+      return { ...state, bloodType: action.blood };
     case 'setPartner':
       if (action.partner === 'mekurin' && !state.mekurinUnlocked) return state;
       return { ...state, partner: action.partner };

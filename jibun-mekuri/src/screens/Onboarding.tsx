@@ -70,26 +70,34 @@ export const STYLE_INFO: Record<StyleId, { name: { ja: string; en: string }; des
   pop: {
     name: { ja: 'ふんわりポップ', en: 'Soft Pop' },
     desc: {
-      ja: 'やさしい色とゆるい精霊。恋愛や相性をかわいく楽しみたい人に。',
-      en: 'Gentle colors and a fluffy spirit. For enjoying love and compatibility the cute way.',
+      ja: 'ぽむちゃんと、やさしい色の世界。恋愛や相性をかわいく楽しみたい人に。',
+      en: 'Pomu and a world of gentle colors. For enjoying love and compatibility the cute way.',
     },
     sample: { ja: '恋のはじまりは、ひとめぼれ？', en: 'Does love start at first sight?' },
   },
   chic: {
-    name: { ja: 'おしゃれ・自己理解', en: 'Chic & Insightful' },
+    name: { ja: 'ダーク・ラグジュアリー', en: 'Dark Luxury' },
     desc: {
-      ja: '雑誌のように整った誌面。自分の傾向をすっきり整理したい人に。',
-      en: 'A clean, magazine-like layout. For neatly organizing your tendencies.',
+      ja: 'ノワと、月夜の書斎。静かに自分と向き合いたい大人に。',
+      en: 'Noir and a moonlit study. For grown-ups who want to quietly reflect.',
     },
-    sample: { ja: '強みと注意点を、整理して読む。', en: 'Read your strengths and cautions, neatly.' },
+    sample: { ja: '今夜は、どの自分を読み解く？', en: 'Which side of you shall we read tonight?' },
   },
   game: {
-    name: { ja: 'キャラ・ゲーム', en: 'Character Game' },
+    name: { ja: 'ゲーム・ポップ', en: 'Game Pop' },
     desc: {
-      ja: '相棒キャラと発見カード集め。友達とワイワイ楽しみたい人に。',
-      en: 'A buddy character and discovery cards. For having fun with friends.',
+      ja: 'コロと、診断ミッションに出発。ステータスを集めて自分を攻略しよう。',
+      en: 'Head out on missions with Koro. Collect stats and beat the game of you.',
     },
-    sample: { ja: '発見カードGET！ 次のステージへ', en: 'Discovery card GET! On to the next stage' },
+    sample: { ja: 'ミッション開始！ ステータス解放', en: 'Mission start! Stats unlocked' },
+  },
+  fairy: {
+    name: { ja: 'ミント・フェアリー', en: 'Mint Fairy' },
+    desc: {
+      ja: 'メクリンが案内する、透明で知的な世界。すっきり考えを整理したい人に。',
+      en: 'A clear, thoughtful world guided by Mekurin. For calmly organizing your thoughts.',
+    },
+    sample: { ja: 'ひとつずつ、静かに見つけていこう。', en: 'Let’s discover things one at a time.' },
   },
 };
 
@@ -133,7 +141,7 @@ export function StyleOptions({ value, onSelect }: { value: StyleId; onSelect: (s
             )}
             <strong style={{ fontSize: '1.05rem' }}>{pick(info.name, state.lang)}</strong>
             <span className="style-preview" data-style={id} aria-hidden="true">
-              <Character styleId={id} mood="happy" size={64} />
+              <Character styleId={id} mood="happy" size={id === 'pop' ? 72 : 150} />
               <span className="mini">
                 <strong>{pick(CHARACTER_NAMES[id], state.lang)}</strong>
                 {pick(info.sample, state.lang)}

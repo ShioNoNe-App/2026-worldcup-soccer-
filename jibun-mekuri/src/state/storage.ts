@@ -42,6 +42,7 @@ export function loadState(storage: Storage | null = safeStorage()): LoadResult {
     if (!isObject(merged.care) || !Array.isArray(merged.care.fed) || !Array.isArray(merged.care.petted)) merged.care = fresh.care;
     if (!isObject(merged.daily)) merged.daily = fresh.daily;
     if (typeof merged.mekurinUnlocked !== 'boolean') merged.mekurinUnlocked = false;
+    if (!['A', 'B', 'O', 'AB', 'unknown', 'skip'].includes(merged.bloodType as string)) merged.bloodType = null;
     if (!isObject(merged.topicExtra)) merged.topicExtra = {};
     if (merged.profile !== null && (!isObject(merged.profile) || typeof merged.profile.birthDate !== 'string')) {
       return { state: { ...fresh, style: merged.style, styleChosen: merged.styleChosen }, corrupted: true, restored: false };
