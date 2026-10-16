@@ -485,3 +485,11 @@ test('血液型（おまけ）: 未回答・回答・変更・再表示', async 
   await expect(page.getByTestId('blood-result')).not.toContainText(/[ABO]+型のあなた/);
   await expect(page.getByTestId('blood-result')).toContainText('わからない');
 });
+
+test('どうぶつタイプが生年月日から表示される', async ({ page }) => {
+  await onboard(page, { themes: ['self'] });
+  await page.getByRole('button', { name: /私を動物にたとえると/ }).click();
+  // 1995-08-17 は 庚辰（金・辰）→ きらりクジラ
+  await expect(page.getByTestId('animal-name')).toHaveText('きらりクジラ');
+  await expect(page.getByTestId('animal')).toContainText('動物占い®」とは関係ありません');
+});

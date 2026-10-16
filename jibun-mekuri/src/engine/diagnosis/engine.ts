@@ -235,7 +235,7 @@ export function themeIntroQuestions(theme: ThemeId): QuestionDef[] {
 /** まとめて答えるときに含めるトピック（状況に合わないトピックは除く） */
 export function themeRunTopics(theme: ThemeId, ctx: DiagnosisContext): TopicDef[] {
   return TOPICS.filter(
-    (t) => t.theme === theme && t.special !== 'compat' && t.special !== 'blood' && (!t.gate || t.gate.some((tag) => ctx.tags.has(tag))),
+    (t) => t.theme === theme && t.special !== 'compat' && t.special !== 'blood' && t.special !== 'animal' && (!t.gate || t.gate.some((tag) => ctx.tags.has(tag))),
   );
 }
 

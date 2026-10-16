@@ -120,3 +120,14 @@ describe('診断の質', () => {
     expect(full.code).toBe('INTP');
   });
 });
+
+describe('どうぶつタイプ', () => {
+  it('日柱の地支で動物、日干の五行で性質が決まる', async () => {
+    const { ANIMALS, ANIMAL_FLAVORS } = await import('../content/animals');
+    expect(ANIMALS).toHaveLength(12);
+    expect(ANIMAL_FLAVORS).toHaveLength(5);
+    // 2000-01-01 は 戊午（土・午）→ どっしりイルカ
+    const c = analyzeBirth({ date: '2000-01-01', time: null });
+    expect(ANIMAL_FLAVORS[c.dayElement].name.ja + ANIMALS[c.pillars.day.branch].name.ja).toBe('どっしりイルカ');
+  });
+});

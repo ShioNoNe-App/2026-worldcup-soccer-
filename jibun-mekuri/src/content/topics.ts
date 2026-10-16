@@ -641,6 +641,23 @@ export const TOPICS: TopicDef[] = [
   },
 
   {
+    id: 'animal',
+    theme: 'self',
+    title: { ja: 'どうぶつタイプ', en: 'Your animal type' },
+    ask: { ja: '私を動物にたとえると？', en: 'If I were an animal, what would I be?' },
+    traits: [],
+    maxQuestions: 0,
+    special: 'animal',
+    intro: {
+      kind: 'text',
+      text: {
+        ja: '生年月日から求めた日柱（生まれた日の干支）をもとに、あなたを12種の動物と5つの性質にたとえます。',
+        en: 'Based on your day pillar (the sexagenary sign of your birth day), we liken you to one of 12 animals with one of 5 flavors.',
+      },
+    },
+    related: ['true_self', 'blood', 'energy'],
+  },
+  {
     id: 'blood',
     theme: 'self',
     title: { ja: '血液型でみる傾向', en: 'Blood type fun reading' },

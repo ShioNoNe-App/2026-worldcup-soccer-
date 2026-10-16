@@ -12,7 +12,8 @@ import {
 } from '../engine/diagnosis/engine';
 import { composeCompat, composeTopicResult, composeYearReadings, topicIntro } from '../engine/diagnosis/result';
 import type { PointKind, PointSource, ThemeId, TraitStatus } from '../engine/diagnosis/types';
-import { dmText, localizeQuestion, pick, traitText } from '../content/localize';
+import { dmText, localizeQuestion, pick, pillarText, traitText } from '../content/localize';
+import { ANIMALS, ANIMAL_FLAVORS } from '../content/animals';
 import { BLOOD, BLOOD_DISCLAIMER, BLOOD_TYPES, type BloodAnswer } from '../content/blood';
 import { THEME_BY_ID, THEMES, TOPIC_BY_ID, topicsOfTheme } from '../content/topics';
 import { traitsOfTheme } from '../content/traits';
@@ -298,7 +299,7 @@ export function TopicScreen() {
   const q = topic && diag && !done ? nextQuestion(topic.id, diag) : null;
 
   const needsCompatForm = topic?.special === 'compat' && !state.compat && !compatSkipped && !done;
-  const showResult = Boolean(topic && diag && topic.special !== 'blood' && !needsCompatForm && (done || !q));
+  const showResult = Boolean(topic && diag && topic.special !== 'blood' && topic.special !== 'animal' && !needsCompatForm && (done || !q));
 
   useEffect(() => {
     if (topic && showResult && !done) dispatch({ type: 'completeTopic', topic: topic.id });
@@ -315,12 +316,12 @@ export function TopicScreen() {
   }, [q?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!topic || !chart || !diag) return null;
-  if (topic.special === 'blood') {
+  if (topic.special === 'blood' || topic.special === 'animal') {
     return (
       <>
         <TopBar title={pick(topic.title, lang)} onBack={() => dispatch({ type: 'go', screen: 'theme', theme: topic.theme })} />
         <main className="main" data-accent={topic.theme}>
-          <BloodPanel />
+          {topic.special === 'blood' ? <BloodPanel /> : <AnimalPanel />}
         </main>
       </>
     );
@@ -713,6 +714,80 @@ function BloodPanel() {
           </button>
         </div>
       )}
+    </div>
+  );
+}
+
+// ============ どうぶつタイプ ============
+
+function AnimalPanel() {
+  const { state, chart } = useApp();
+  const T = useT();
+  const lang = state.lang;
+  if (!chart) return null;
+  const day = chart.pillars.day;
+  const a = ANIMALS[day.branch];
+  const f = ANIMAL_FLAVORS[chart.dayElement];
+  const name = lang === 'en' ? `${f.name.en} ${a.name.en}` : `${f.name.ja}${a.name.ja}`;
+  return (
+    <div className="stack" style={{ marginTop: 8 }} data-testid="animal">
+      <div className="card anim-flip center">
+        <SectionLabel>{T('あなたのどうぶつタイプ', 'Your animal type')}</SectionLabel>
+        <div aria-hidden="true" style={{ fontSize: '4rem', lineHeight: 1.2 }}>
+          {a.emoji}
+        </div>
+        <h2 data-testid="animal-name">{name}</h2>
+        <p>{pick(a.catch, lang)}</p>
+        <p className="small muted" style={{ marginBottom: 0 }}>
+          {pick(f.text, lang)}
+        </p>
+      </div>
+      <div className="card">
+        <ul className="points">
+          {a.strengths.map((st) => (
+            <li className="point" key={st.ja}>
+              <span className="point-icon" aria-hidden="true">
+                ★
+              </span>
+              <p>{pick(st, lang)}</p>
+            </li>
+          ))}
+          <li className="point">
+            <span className="point-icon" aria-hidden="true">
+              ♡
+            </span>
+            <p>
+              <strong>{T('恋愛：', 'Love: ')}</strong>
+              {pick(a.love, lang)}
+            </p>
+          </li>
+          <li className="point">
+            <span className="point-icon" aria-hidden="true">
+              ◆
+            </span>
+            <p>
+              <strong>{T('仕事：', 'Work: ')}</strong>
+              {pick(a.work, lang)}
+            </p>
+          </li>
+          <li className="point">
+            <span className="point-icon" aria-hidden="true">
+              ➜
+            </span>
+            <p>
+              <strong>{T('ヒント：', 'Tip: ')}</strong>
+              {pick(a.tip, lang)}
+            </p>
+          </li>
+        </ul>
+        <p className="small muted" style={{ marginTop: 12, marginBottom: 0 }}>
+          {T(
+            `計算：日柱「${pillarText(day.stem, day.branch, 'ja')}」の地支で動物、日干の五行で性質を決めています。このアプリ独自の分類で、「動物占い®」とは関係ありません。エンターテインメントとしてお楽しみください。`,
+            `Calculation: the animal comes from the branch of your day pillar ${pillarText(day.stem, day.branch, 'en')}, the flavor from the day stem’s element. This is the app’s own classification, unrelated to other animal fortune services. Enjoy it as entertainment.`,
+          )}
+        </p>
+      </div>
+      <ShareButton title={T('私のどうぶつタイプ', 'My animal type')} headline={`${a.emoji} ${name}`} keywords={[pick(a.name, lang)]} theme="self" />
     </div>
   );
 }

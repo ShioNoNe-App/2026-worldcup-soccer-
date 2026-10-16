@@ -53,7 +53,7 @@ describe('適応的な質問の選択', () => {
   });
 
   it('同じ質問をくり返さず、トピックの質問を最後まで聞き切って終わる', () => {
-    for (const topic of TOPICS.filter((t) => t.special !== 'blood')) {
+    for (const topic of TOPICS.filter((t) => t.special !== 'blood' && t.special !== 'animal')) {
       const { asked, ctx } = runTopic(topic.id, (q) => q.options[0]);
       const ids = asked.map((q) => q.id);
       expect(new Set(ids).size, topic.id).toBe(ids.length);
@@ -81,7 +81,7 @@ describe('適応的な質問の選択', () => {
 
   it('「わからない」「どれも違う」「スキップ」でも先に進める', () => {
     const pickSpecial = (q: QuestionDef) => q.options.find((o) => o.kind && o.kind !== 'normal') ?? q.options[q.options.length - 1];
-    for (const topic of TOPICS.filter((t) => t.special !== 'blood')) {
+    for (const topic of TOPICS.filter((t) => t.special !== 'blood' && t.special !== 'animal')) {
       const { asked, ctx } = runTopic(topic.id, pickSpecial);
       expect(asked.length).toBeGreaterThan(0);
       expect(() => composeTopicResult(topic.id, ctx)).not.toThrow();

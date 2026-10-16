@@ -200,7 +200,7 @@ export interface TopicDef {
   /** 日干の強み・注意点を結果に加える */
   dmExtras?: ('strength0' | 'caution0')[];
   related: string[];
-  special?: 'compat' | 'yearly' | 'blood';
+  special?: 'compat' | 'yearly' | 'blood' | 'animal';
   /** テーマをまとめて答えるとき、このタグのいずれかがある場合だけ含める */
   gate?: string[];
   /** 結果で注意点を強調する（強みが裏目に出る条件など） */
